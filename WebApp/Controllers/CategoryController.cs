@@ -1,5 +1,6 @@
 ﻿using Lib.Models;
 using Lib.Services;
+using Lib.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -22,17 +23,18 @@ namespace WebApp.Controllers
         }
 
         [HttpGet("[action]")]
-        public ActionResult<IEnumerable<CategoryDTO>> GetAll()
+        public ActionResult<IEnumerable<CategoryView>> GetAll()
         {
             try
             {
                 var list = _context.Categories.Include(t => t.Topics).ToList();
-                List<CategoryDTO> lista = new List<CategoryDTO>();
+                List<CategoryView> lista = new List<CategoryView>();
                 foreach (var item in list) 
                 {
-                    var categoryDTO = new CategoryDTO() 
+                    var categoryDTO = new CategoryView()
                     {
                         Name = item.Name,
+                        TopicTitles = item.Topics.Select(t => t.Title).ToList(),
                         Id=item.Id,
                     };
                     lista.Add(categoryDTO);
@@ -48,20 +50,21 @@ namespace WebApp.Controllers
         }
 
         [HttpGet("{id}")]
-        public ActionResult<CategoryDTO> Get(int id)
+        public ActionResult<CategoryView> Get(int id)
         {
             try
             {
-                var item = _context.Categories.FirstOrDefault(t => t.Id == id);
-                if (item is null)
+                var dbCategory = _context.Categories.FirstOrDefault(t => t.Id == id);
+                if (dbCategory is null)
                 {
                     _logger.LogError("wrong", "wrong", 1);
                     return NotFound();
                 }
-                var category = new CategoryDTO()
+                var category = new CategoryView()
                 {
-                    Id = item.Id,
-                    Name  = item.Name,
+                    Id = dbCategory.Id,
+                    Name  = dbCategory.Name,
+                    TopicTitles = dbCategory.Topics.Select(x => x.Title).ToList(),
                 };
 
                 return Ok(category);
@@ -71,6 +74,44 @@ namespace WebApp.Controllers
                 _logger.LogError("Error in Get", e.Message, 5);
                 return StatusCode(StatusCodes.Status500InternalServerError, "There has been a problem while fetching the data you requested");
             }
+        }
+
+
+        [HttpPut("{id}")]
+        public ActionResult<CategoryDTO> Put(int id, CategoryDTO post)
+        {
+
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    _logger.LogError("Modelstate isnt valid", " wa ", 1);
+                    return BadRequest();
+                }
+
+                var dbcategory = _context.Categories.FirstOrDefault(x => x.Id == id);
+                if (dbcategory is null)
+                {
+                    return NotFound();
+                }
+
+                dbcategory.Name = post.Name;
+
+                _context.SaveChanges();
+
+                post.Id = dbcategory.Id;
+                post.Name = dbcategory.Name;
+
+                return Ok(post);
+
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Error in Get", e.Message, 5);
+                return StatusCode(StatusCodes.Status500InternalServerError, "There has been a problem while fetching the data you requested");
+            }
+
+
         }
 
 
@@ -112,42 +153,7 @@ namespace WebApp.Controllers
             }
         }
 
-        [HttpPut("{id}")]
-        public ActionResult<CategoryDTO> Put(int id, CategoryDTO post)
-        {
 
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    _logger.LogError("Modelstate isnt valid", " wa ", 1);
-                    return BadRequest();
-                }
-
-                var dbcategory = _context.Categories.FirstOrDefault(x => x.Id == id);
-                if (dbcategory is null)
-                {
-                    return NotFound();
-                }
-
-                dbcategory.Name= post.Name;
-
-                _context.SaveChanges();
-
-                post.Id= dbcategory.Id;
-                post.Name = dbcategory.Name;
-
-                return Ok(post);
-
-            }
-            catch (Exception e)
-            {
-                _logger.LogError("Error in Get", e.Message, 5);
-                return StatusCode(StatusCodes.Status500InternalServerError, "There has been a problem while fetching the data you requested");
-            }
-
-
-        }
 
         [HttpDelete("{id}")]
         public ActionResult<CategoryDTO> Delete(int id)

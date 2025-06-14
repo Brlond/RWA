@@ -1,5 +1,6 @@
 ﻿using Lib.Models;
 using Lib.Services;
+using Lib.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -23,24 +24,26 @@ namespace WebApp.Controllers
         }
 
         [HttpGet("[action]")]
-        public ActionResult<IEnumerable<PostDTO>> GetAll()
+        public ActionResult<IEnumerable<PostView>> GetAll()
         {
             try
             {
-                var postss = _context.Posts.Include(t => t.Ratings).Include(x => x.User).Include(x=> x.Topic);
-                List<PostDTO> posts = new List<PostDTO>();
-                foreach (var post in postss)
+                var dbposts = _context.Posts.Include(t => t.Ratings).Include(x => x.User).Include(x => x.Topic);
+                List<PostView> posts = new List<PostView>();
+                foreach (var post in dbposts)
                 {
-                    var postdto = new PostDTO
+                    var postview = new PostView
                     {
                         Id = post.Id,
                         Content = post.Content,
-                        TopicId = post.Topic.Id,
-                        UserId = post.User.Id,
+                        TopicTitle = post.Topic.Title,
                         Scores = post.Ratings.Select(r => (int)r.Score).ToList(),
+                        Username = post.User.Username,
+                        Approved = post.Approved.Value,
+                        PostedAt = post.PostedAt.Value,
 
                     };
-                    posts.Add(postdto);
+                    posts.Add(postview);
                 }
 
                 return Ok(posts);
@@ -53,7 +56,7 @@ namespace WebApp.Controllers
         }
 
         [HttpGet("{id}")]
-        public ActionResult<PostDTO> Get(int id)
+        public ActionResult<PostView> Get(int id)
         {
             try
             {
@@ -64,13 +67,15 @@ namespace WebApp.Controllers
                     return NotFound();
                 }
 
-                var post = new PostDTO
+                var post = new PostView
                 {
                     Id = dbpost.Id,
                     Content = dbpost.Content,
-                    TopicId = (int)dbpost.TopicId,
-                    UserId = (int)dbpost.UserId,
+                    TopicTitle = dbpost.Topic.Title,
+                    Username = dbpost.User.Username,
                     Scores = dbpost.Ratings.Select(r => (int)r.Score).ToList(),
+                    Approved = dbpost.Approved.Value,
+                    PostedAt = dbpost.PostedAt.Value,
                 };
 
                 return Ok(post);
@@ -83,51 +88,6 @@ namespace WebApp.Controllers
             }
         }
 
-
-        [HttpPost()]
-        public ActionResult<PostDTO> Post(PostDTO post)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    _logger.LogError("Modelstate isnt valid", " wa ", 1);
-                    return BadRequest();
-                }
-
-                var dbpost = new Post
-                {
-                    UserId = post.UserId,
-                    Content = post.Content,
-                    TopicId = post.TopicId,
-                };
-                var ratings = _context.Ratings.Where(x => x.Score.HasValue && post.Scores.Contains(x.Score.Value));
-                dbpost.Ratings = ratings.Select(x => new Rating { Score = x.Score }).ToList();
-                dbpost.User = _context.Users.FirstOrDefault(x => x.Id == dbpost.UserId);
-                dbpost.Topic = _context.Topics.FirstOrDefault(x => x.Id == dbpost.TopicId);
-
-                _context.Posts.Add(dbpost);
-                _context.SaveChanges();
-
-                var scores = dbpost.Ratings.Select(x => x.Score.Value).ToList();
-                post = new PostDTO
-                {
-                    UserId = (int)dbpost.UserId,
-                    Content = dbpost.Content,
-                    TopicId = (int)dbpost.TopicId,
-                    Id = dbpost.Id,
-                    Scores = (List<int>)scores,
-
-                };
-
-                return Ok(post);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError("Error in Post/Post", e.Message, 5);
-                return StatusCode(StatusCodes.Status500InternalServerError, "There has been a problem while fetching the data you requested");
-            }
-        }
 
         [HttpPut("{id}")]
         public ActionResult<PostDTO> Put(int id, PostDTO post)
@@ -199,6 +159,53 @@ namespace WebApp.Controllers
 
         }
 
+        [HttpPost()]
+        public ActionResult<PostDTO> Post(PostDTO post)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    _logger.LogError("Modelstate isnt valid", " wa ", 1);
+                    return BadRequest();
+                }
+
+                var dbpost = new Post
+                {
+                    UserId = post.UserId,
+                    Content = post.Content,
+                    TopicId = post.TopicId,
+                };
+                var ratings = _context.Ratings.Where(x => x.Score.HasValue && post.Scores.Contains(x.Score.Value));
+                dbpost.Ratings = ratings.Select(x => new Rating { Score = x.Score }).ToList();
+                dbpost.User = _context.Users.FirstOrDefault(x => x.Id == dbpost.UserId);
+                dbpost.Topic = _context.Topics.FirstOrDefault(x => x.Id == dbpost.TopicId);
+
+                _context.Posts.Add(dbpost);
+                _context.SaveChanges();
+
+                var scores = dbpost.Ratings.Select(x => x.Score.Value).ToList();
+                post = new PostDTO
+                {
+                    UserId = (int)dbpost.UserId,
+                    Content = dbpost.Content,
+                    TopicId = (int)dbpost.TopicId,
+                    Id = dbpost.Id,
+                    Scores = (List<int>)scores,
+
+                };
+
+                return Ok(post);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Error in Post/Post", e.Message, 5);
+                return StatusCode(StatusCodes.Status500InternalServerError, "There has been a problem while fetching the data you requested");
+            }
+        }
+
+
+
         [HttpDelete("{id}")]
         public ActionResult<PostDTO> Delete(int id)
         {
@@ -212,7 +219,7 @@ namespace WebApp.Controllers
                 }
 
                 var scores = dbPost.Ratings.Select(x => x.Score.Value);
-                var ratings = _context.Ratings.Select(x => x.PostId==id);
+                var ratings = _context.Ratings.Select(x => x.PostId == id);
                 var post = new PostDTO
                 {
                     Content = dbPost.Content,
@@ -221,7 +228,7 @@ namespace WebApp.Controllers
                     TopicId = (int)dbPost.TopicId,
                     UserId = (int)dbPost.UserId
                 };
-                foreach (var rating in ratings) 
+                foreach (var rating in ratings)
                 {
                     _context.Remove(rating);
                 }

@@ -16,6 +16,73 @@ namespace WebApp.Controllers
             _context = context;
         }
 
+
+
+
+        [HttpGet("[action]")]
+        public ActionResult<List<LogDTO>> GetAll()
+        {
+            var logs = _context.Logs;
+            List<LogDTO> list = new List<LogDTO>();
+            foreach (Log item in logs)
+            {
+                var log = new LogDTO()
+                {
+                    ErrorText = item.ErrorText,
+                    Id = item.Id,
+                    Message = item.Message,
+                    Severity = item.Severity,
+                };
+                list.Add(log);
+            }
+            return Ok(list);
+        }
+
+
+
+        [HttpGet("{n}/{OrderBy}")]
+        public ActionResult<List<LogDTO>> Get(int n, int OrderBy)
+        {
+            if (n <= 0)
+            {
+                return BadRequest("N must be greater than 0");
+            }
+            if (OrderBy > 2 || OrderBy < 0)
+            {
+                return BadRequest();
+            }
+
+            IEnumerable<Log> logs = new List<Log>();
+
+            switch (OrderBy)
+            {
+                case 0:
+                    logs = _context.Logs.ToList().OrderBy(x => x.Id).TakeLast(n);
+                    break;
+                case 1:
+                    logs = _context.Logs.ToList().OrderBy(x => x.DateOf ?? DateTime.MinValue).TakeLast(n);
+                    break;
+                case 2:
+                    logs = _context.Logs.ToList().OrderBy(x => x.Message).TakeLast(n);
+                    break;
+            }
+            List<LogDTO> list = new List<LogDTO>();
+            foreach (Log item in logs)
+            {
+                var log = new LogDTO()
+                {
+                    ErrorText = item.ErrorText,
+                    Id = item.Id,
+                    Message = item.Message,
+                    Severity = item.Severity,
+                };
+                list.Add(log);
+            }
+            return Ok(list);
+        }
+
+
+
         [HttpPost()]
         public ActionResult<LogDTO> Post(LogDTO log)
         {
@@ -80,69 +147,5 @@ namespace WebApp.Controllers
 
             return Ok(logs);
         }
-
-        [HttpGet("{n}/{OrderBy}")]
-        public ActionResult<List<LogDTO>> Get(int n , int OrderBy)
-        {
-            if (n <= 0)
-            {
-                return BadRequest("N must be greater than 0");
-            }
-            if (OrderBy >2 || OrderBy < 0)
-            {
-                return BadRequest();
-            }
-
-            IEnumerable<Log> logs = new List<Log>();
-
-            switch (OrderBy)
-            {
-                case 0:
-                    logs = _context.Logs.ToList().OrderBy(x => x.Id).TakeLast(n);
-                    break;
-                case 1:
-                    logs = _context.Logs.ToList().OrderBy(x => x.DateOf ?? DateTime.MinValue).TakeLast(n);
-                    break;
-                case 2:
-                    logs = _context.Logs.ToList().OrderBy(x => x.Message).TakeLast(n);
-                    break;
-            }
-            List<LogDTO> list = new List<LogDTO>();
-            foreach (Log item in logs)
-            {
-                var log = new LogDTO()
-                {
-                    ErrorText = item.ErrorText,
-                    Id = item.Id,
-                    Message = item.Message,
-                    Severity = item.Severity,
-                };
-                list.Add(log);
-            }
-            return Ok(list);
-        }
-
-
-        [HttpGet("[action]")]
-        public ActionResult<List<LogDTO>> GetAll()
-        {
-            var logs = _context.Logs;
-            List<LogDTO> list = new List<LogDTO>();
-            foreach (Log item in logs)
-            {
-                var log = new LogDTO()
-                {
-                    ErrorText = item.ErrorText,
-                    Id = item.Id,
-                    Message = item.Message,
-                    Severity = item.Severity,
-                };
-                list.Add(log);
-            }
-            return Ok(list);
-        }
-
-
-
     }
 }
