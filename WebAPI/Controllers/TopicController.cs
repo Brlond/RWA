@@ -1,6 +1,7 @@
 ﻿using Lib.Models;
 using Lib.Services;
 using Lib.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,7 @@ namespace WebApp.Controllers
 
 
         [HttpGet("[action]")]
+        [Authorize]
         public ActionResult<IEnumerable<TopicView>> GetAll()
         {
             try
@@ -57,6 +59,7 @@ namespace WebApp.Controllers
 
 
         [HttpGet("[action]")]
+        [Authorize]
         public ActionResult<IEnumerable<TopicView>> Search(string searchPart)
         {
             try
@@ -91,6 +94,7 @@ namespace WebApp.Controllers
 
 
         [HttpGet("{id}")]
+        [Authorize]
         public ActionResult<TopicView> Get(int id)
         {
             try
@@ -122,6 +126,7 @@ namespace WebApp.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         public ActionResult<TopicDTO> Put(int id, TopicDTO topic)
         {
             try
@@ -170,6 +175,7 @@ namespace WebApp.Controllers
         }
 
         [HttpPost()]
+        [Authorize]
         public ActionResult<TopicDTO> Post(TopicDTO topic)
         {
             try
@@ -214,6 +220,7 @@ namespace WebApp.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         public ActionResult<TopicDTO> Delete(int id)
         {
             try

@@ -1,6 +1,7 @@
 ﻿using Lib.Models;
 using Lib.Services;
 using Lib.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,7 @@ namespace WebApp.Controllers
         }
 
         [HttpGet("[action]")]
+        [Authorize]
         public ActionResult<IEnumerable<TagView>> GetAll()
         {
             try
@@ -51,6 +53,7 @@ namespace WebApp.Controllers
         }
 
         [HttpGet("[action]")]
+        [Authorize]
         public ActionResult<IEnumerable<TagView>> Search(string searchPart)
         {
             try
@@ -79,6 +82,7 @@ namespace WebApp.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         public ActionResult<TagView> Get(int id)
         {
             try
@@ -108,6 +112,7 @@ namespace WebApp.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         public ActionResult<TagDTO> Put(int id, TagDTO tag)
         {
 
@@ -144,6 +149,7 @@ namespace WebApp.Controllers
         }
 
         [HttpPost()]
+        [Authorize]
         public ActionResult<TagDTO> Post(TagDTO tag)
         {
             try
@@ -176,6 +182,7 @@ namespace WebApp.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         public ActionResult<TagDTO> Delete(int id)
         {
 

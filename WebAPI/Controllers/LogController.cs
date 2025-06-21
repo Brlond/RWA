@@ -1,5 +1,6 @@
 ﻿using Lib.Models;
 using Lib.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WebApp.DTO;
@@ -23,6 +24,7 @@ namespace WebApp.Controllers
 
 
         [HttpGet("[action]")]
+        [Authorize]
         public ActionResult<List<LogDTO>> GetAll()
         {
             try
@@ -50,6 +52,7 @@ namespace WebApp.Controllers
         }
 
         [HttpGet("[action]")]
+        [Authorize]
         public ActionResult<PagedResult<LogDTO>> GetSome(int pageNumber, int pageSize)
         {
             try

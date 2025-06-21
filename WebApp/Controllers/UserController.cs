@@ -62,7 +62,7 @@ namespace MVC.Controllers
             if (loginVm.ReturnUrl != null)
                 return LocalRedirect(loginVm.ReturnUrl);
             else if (role == "Admin")
-                return RedirectToAction("Index", "AdminHome");
+                return RedirectToAction("Index", "Topic");
             else if (role == "User")
                 return RedirectToAction("Index", "Home");
             else

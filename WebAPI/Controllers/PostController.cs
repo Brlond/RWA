@@ -61,6 +61,7 @@ namespace WebApp.Controllers
 
 
         [HttpGet("[action]")]
+        [Authorize]
         public ActionResult<IEnumerable<PostView>> Search(string searchPart)
         {
             try
@@ -93,6 +94,7 @@ namespace WebApp.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         public ActionResult<PostView> Get(int id)
         {
             try
@@ -127,6 +129,7 @@ namespace WebApp.Controllers
 
 
         [HttpPut("{id}")]
+        [Authorize]
         public ActionResult<PostDTO> Put(int id, PostDTO post)
         {
 
@@ -197,6 +200,7 @@ namespace WebApp.Controllers
         }
 
         [HttpPost()]
+        [Authorize]
         public ActionResult<PostDTO> Post(PostDTO post)
         {
             try
@@ -244,6 +248,7 @@ namespace WebApp.Controllers
 
 
         [HttpDelete("{id}")]
+        [Authorize]
         public ActionResult<PostDTO> Delete(int id)
         {
             try

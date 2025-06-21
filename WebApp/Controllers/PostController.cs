@@ -1,22 +1,53 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Lib.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
+using MVC.ViewModels;
 
 namespace MVC.Controllers
 {
     [Authorize(Roles = "Admin")]
     public class PostController : Controller
     {
+
+        private readonly RwaContext _context;
+
+        public PostController(RwaContext context)
+        {
+            _context = context;
+        }
+
         // GET: PostController
         public ActionResult Index()
         {
-            return View();
+            var posts = _context.Posts.Select(x=> new PostVM
+            {
+                Id = x.Id,
+                Content = x.Content,
+                CreatorUsername = x.User.Username,
+                Score = x.Ratings.Count == 0 ? (int)Math.Round((decimal)x.Ratings.Select(r => r.Score).DefaultIfEmpty(0).Average()) : 0,
+                TopicId = (int)x.TopicId,
+                TopicTitle = x.Topic.Title
+            });
+            return View(posts);
         }
 
         // GET: PostController/Details/5
         public ActionResult Details(int id)
         {
-            return View();
+            var post = _context.Posts.FirstOrDefault(x=>x.Id==id);
+
+            var postvm = new PostVM
+            {
+                Id = post.Id,
+                Content = post.Content,
+                CreatorUsername = post.User.Username,
+                Score = post.Ratings.Count == 0 ? (int)Math.Round((decimal)post.Ratings.Select(r => r.Score).DefaultIfEmpty(0).Average()) : 0,
+                TopicId = (int)post.TopicId,
+                TopicTitle = post.Topic.Title
+            };
+            return View(postvm);
         }
 
         // GET: PostController/Create
@@ -28,10 +59,24 @@ namespace MVC.Controllers
         // POST: PostController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public ActionResult Create(PostVM postvm)
         {
             try
             {
+                var user = _context.Users.FirstOrDefault(x=> x.Username==postvm.CreatorUsername);
+                var post = new Post
+                {
+                    Id = postvm.Id,
+                    Approved = CheckProfanity(postvm.Content),
+                    Content = postvm.Content,
+                    Topic = _context.Topics.FirstOrDefault(x => x.Id == postvm.TopicId),
+                    TopicId = postvm.TopicId,
+                    User = user,
+                    UserId = user.Id,
+                };
+                _context.Posts.Add(post);
+                _context.SaveChanges();
+
                 return RedirectToAction(nameof(Index));
             }
             catch
@@ -40,19 +85,41 @@ namespace MVC.Controllers
             }
         }
 
+        private bool? CheckProfanity(string content)
+        {
+            if (content.Contains("Fuck") || content.Contains("Shit"))
+            {
+                return false;
+            }
+            return true;
+        }
+
         // GET: PostController/Edit/5
         public ActionResult Edit(int id)
         {
-            return View();
+            var dbpost = _context.Posts.FirstOrDefault(x => x.Id == id);
+            var postvm = new PostVM
+            {
+                Id = dbpost.Id,
+                Content = dbpost.Content,
+                CreatorUsername = dbpost.User.Username,
+                Score = dbpost.Ratings.Count == 0 ? (int)Math.Round((decimal)dbpost.Ratings.Select(r => r.Score).DefaultIfEmpty(0).Average()) : 0,
+                TopicId = (int)dbpost.TopicId,
+                TopicTitle = dbpost.Topic.Title
+            };
+            return View(postvm);
         }
 
         // POST: PostController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public ActionResult Edit(int id, PostVM postVM)
         {
             try
             {
+                var dbpost = _context.Posts.FirstOrDefault(x => x.Id == id);
+                dbpost.Content= postVM.Content;
+                _context.SaveChanges();
                 return RedirectToAction(nameof(Index));
             }
             catch
@@ -64,16 +131,31 @@ namespace MVC.Controllers
         // GET: PostController/Delete/5
         public ActionResult Delete(int id)
         {
-            return View();
+            var dbpost = _context.Posts.FirstOrDefault(x => x.Id == id);
+            var postvm = new PostVM
+            {
+                Id = dbpost.Id,
+                Content = dbpost.Content,
+                CreatorUsername = dbpost.User.Username,
+                Score = dbpost.Ratings.Count == 0 ? (int)Math.Round((decimal)dbpost.Ratings.Select(r => r.Score).DefaultIfEmpty(0).Average()) : 0,
+                TopicId = (int)dbpost.TopicId,
+                TopicTitle = dbpost.Topic.Title
+            };
+            return View(postvm);
         }
 
         // POST: PostController/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public ActionResult Delete(int id, PostVM postvm)
         {
             try
             {
+                var dbpost = _context.Posts.FirstOrDefault(x=>x.Id==id);
+
+                _context.Posts.Remove(dbpost);
+                _context.SaveChanges();
+
                 return RedirectToAction(nameof(Index));
             }
             catch

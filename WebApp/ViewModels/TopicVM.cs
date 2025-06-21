@@ -17,14 +17,14 @@ namespace MVC.ViewModels
         public int CategoryId { get; set; }
 
         [Display(Name ="Category")]
-        public string CategoryName { get; set; }
+        public string? CategoryName { get; set; }
 
 
         [Display(Name ="Select Tags")]
         public List<int> TagIds{ get; set; }
 
         [Display(Name ="Tags")]
-        public List<string> TagNames { get; set; }
+        public List<string>? TagNames { get; set; }
 
         public int PostsCount { get; set; }
 
