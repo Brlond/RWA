@@ -1,0 +1,31 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../JS/Links.js"></script>
+    <script src="../JS/Login.js"></script>
+    <script src="../JS/Register.js"></script>
+    <link rel="stylesheet" href="../CSS/Login.css" />
+</head>
+<body>
+    <div class="container login-container">
+        <label for="firstName"><b>First Name</b></label>
+        <input type="text" placeholder="Enter First Name" name="firstName" id="firstName" required>
+
+        <label for="lastName"><b>Last Name</b></label>
+        <input type="text" placeholder="Enter Last Name" name="lastName" id="lastName" required>
+
+        <label for="email"><b>E-mail</b></label>
+        <input type="text" placeholder="Enter E-mail" name="email" id="email" required>
+
+        <label for="username"><b>Username</b></label>
+        <input type="text" placeholder="Enter Username" name="username" id="username" required>
+
+        <label for="password"><b>Password</b></label>
+        <input type="password" placeholder="Enter Password" name="password" id="password" required>
+
+        <button id="register-button" onclick="register()">Register <span id="spinner-placeholder"></span></button>
+
+        <p><a href="Login.html">Register new user</a></p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,102 @@
+﻿@model MVC.ViewModels.UserVM
+<p>DEBUG ID: @Model.Id</p>
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div id="userDetails">
+    <h4>User</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Username)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Username)</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.FirstName)</dt>
+        <dd class="col-sm-10" id="firstNameDisplay">@Model.FirstName</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.LastName)</dt>
+        <dd class="col-sm-10" id="lastNameDisplay">@Model.LastName</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Email)</dt>
+        <dd class="col-sm-10" id="emailDisplay">@Model.Email</dd>
+    </dl>
+</div>
+
+<div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editModal">Edit</button>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>
+
+
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editUserForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Edit User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="userId" value="@Model.Id" />
+                    <div class="mb-3">
+                        <label for="firstName" class="form-label">First Name</label>
+                        <input type="text" class="form-control" id="firstName" value="@Model.FirstName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="lastName" class="form-label">Last Name</label>
+                        <input type="text" class="form-control" id="lastName" value="@Model.LastName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" value="@Model.Email">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        var editurl = "http://localhost:8080/api/User/Edit/@Model.Id"
+
+               $("#editUserForm").on("submit", function (e) {
+                   e.preventDefault(); // 🛑 stops form from submitting normally
+
+                   var data = {
+                       Id: $("#userId").val(),
+                       FirstName: $("#firstName").val(),
+                       LastName: $("#lastName").val(),
+                       Email: $("#email").val()
+                   };
+                   $.ajax({
+                       method: "PUT", // or "PUT" if you're updating
+                       url: editurl,
+                       data: JSON.stringify(data),
+                       contentType: "application/json"
+                   })
+                   .done(function (res) {
+                       $("#firstNameDisplay").html(data.FirstName),
+                       $("#lastNameDisplay").html(data.LastName),
+                       $("#emailDisplay").html(data.Email)
+                       console.log(res);
+                       $('#editModal').modal('hide');
+
+                   })
+                   .fail(function (err) {
+                       console.log(err);
+                       alert("Failed to update user.");
+                   });
+               });
+
+
+
+    </script>
+}

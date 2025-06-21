@@ -1,0 +1,129 @@
+﻿@model MVC.ViewModels.SearchVM
+
+@{
+    ViewData["Title"] = "Topics";
+}
+
+<h1>Topics</h1>
+<form asp-action="Index" method="GET">
+    <div class="row">
+        <div class="col-8">
+            <input asp-for="Query" class="form-control" placeholder="Search topics" />
+        </div>
+        <div class="col-auto">
+            <input type="submit" value="Go" class="btn btn-primary" />
+        </div>
+    <div class="col-auto">
+        <label class="form-label mt-1">Sort by:</label>
+    </div>
+    <div class="col-auto">
+        <select asp-for="OrderBy" class="form-select">
+            <option value="id">(default)</option>
+            <option>Date</option>
+            <option>Title</option>
+            <option>Category</option>
+            <option>Posts</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <select asp-for="Size" class="form-select">
+            <option>10</option>
+            <option>20</option>
+            <option>50</option>
+        </select>
+    </div>
+    </div>
+</form>
+
+
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Topics[0].Title)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Topics[0].Description)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Topics[0].CategoryName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Topics[0].PostsCount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Topics[0].TagNames)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Topics[0].Publish_Date)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model.Topics) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CategoryName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.PostsCount)
+            </td>
+             <td>
+                    @Html.DisplayFor(modelItem =>item.TagNames)
+            </td>
+             <td>
+                @Html.DisplayFor(modelItem => item.Publish_Date)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
+                @Html.ActionLink("Details", "Details", new { id = item.Id }) |
+                @Html.ActionLink("Delete", "Delete", new { id = item.Id })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+
+<nav>
+    <ul class="pagination">
+        @for (int i = Model.FromPager; i <= Model.ToPager; i++)
+        {
+            var linkText = @i.ToString();
+            if (i != 1 && i == Model.FromPager)
+            {
+                linkText = "«";
+            }
+            else if (i != Model.LastPage && i == Model.ToPager)
+            {
+                linkText = "»";
+            }
+
+            var linkClass = "page-item";
+            if (i == Model.Page)
+            {
+                linkClass = "page-item active";
+            }
+            <li class="@linkClass">
+                @Html.ActionLink(
+                         @linkText,
+                         "Search",
+                         new
+                         {
+                             q = Model.Query,
+                             orderby = Model.OrderBy,
+                             page = i,
+                             size = Model.Size
+                         },
+                         new { @class = "page-link" })
+            </li>
+        }
+    </ul>
+</nav>

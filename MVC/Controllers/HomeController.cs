@@ -1,3 +1,4 @@
+using Lib.Models;
 using Microsoft.AspNetCore.Mvc;
 using MVC.Models;
 using System.Diagnostics;
@@ -6,11 +7,11 @@ namespace MVC.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly RwaContext _context;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(RwaContext context)
         {
-            _logger = logger;
+            _context = context;
         }
 
         public IActionResult Index()

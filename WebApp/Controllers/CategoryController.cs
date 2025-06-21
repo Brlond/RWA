@@ -44,7 +44,7 @@ namespace WebApp.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError("Error in Get", e.Message, 5);
+                _logger.LogError("Error in Category/GetAll", e.Message, 5);
                 return StatusCode(StatusCodes.Status500InternalServerError, "There has been a problem while fetching the data you requested");
             }
         }
@@ -57,7 +57,7 @@ namespace WebApp.Controllers
                 var dbCategory = _context.Categories.FirstOrDefault(t => t.Id == id);
                 if (dbCategory is null)
                 {
-                    _logger.LogError("wrong", "wrong", 1);
+                    _logger.LogError("User Error in Category/Get", $"User tried to get category of id = {id}", 1);
                     return NotFound();
                 }
                 var category = new CategoryView()
@@ -71,7 +71,7 @@ namespace WebApp.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError("Error in Get", e.Message, 5);
+                _logger.LogError("Error in Category/Get", e.Message, 5);
                 return StatusCode(StatusCodes.Status500InternalServerError, "There has been a problem while fetching the data you requested");
             }
         }
@@ -85,13 +85,14 @@ namespace WebApp.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    _logger.LogError("Modelstate isnt valid", " wa ", 1);
+                    _logger.LogError("User Error in Category/Put", $"Modelstate isnt valid", 1);
                     return BadRequest();
                 }
 
                 var dbcategory = _context.Categories.FirstOrDefault(x => x.Id == id);
                 if (dbcategory is null)
                 {
+                    _logger.LogError("User Error in Category/Put", $"User tried to put category of id = {id}", 1);
                     return NotFound();
                 }
 
@@ -107,7 +108,7 @@ namespace WebApp.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError("Error in Get", e.Message, 5);
+                _logger.LogError("Error in Category/Put", e.Message, 5);
                 return StatusCode(StatusCodes.Status500InternalServerError, "There has been a problem while fetching the data you requested");
             }
 
@@ -122,7 +123,7 @@ namespace WebApp.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    _logger.LogError("Modelstate isnt valid", " wa ", 1);
+                    _logger.LogError("User Error in Category/Post", $"Modelstate isnt valid", 1);
                     return BadRequest();
                 }
                 var dbCategory = new Category
@@ -148,7 +149,7 @@ namespace WebApp.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError("Error in Get", e.Message, 5);
+                _logger.LogError("Error in Category/Post", e.Message, 5);
                 return StatusCode(StatusCodes.Status500InternalServerError, "There has been a problem while fetching the data you requested");
             }
         }
@@ -164,15 +165,9 @@ namespace WebApp.Controllers
 
                 if (dbcategory is null)
                 {
-                    _logger.LogError("Modelstate isnt valid", " wa ", 1);
+                    _logger.LogError("User Error in Category/Delete", $"User tried to delete category of id = {id}", 1);
                     return NotFound();
                 }
-                if (dbcategory.Topics.Any())
-                {
-                    _logger.LogError("Modelstate isnt valid", " wa ", 1);
-                    return BadRequest();
-                }
-
                 _context.Categories.Remove(dbcategory);
                 _context.SaveChanges();
 
@@ -184,7 +179,7 @@ namespace WebApp.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError("Error in Get", e.Message, 5);
+                _logger.LogError("Error in Category/Delete", e.Message, 5);
                 return StatusCode(StatusCodes.Status500InternalServerError, "There has been a problem while fetching the data you requested");
             }
         }

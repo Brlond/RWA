@@ -56,16 +56,63 @@ namespace WebApp.Controllers
         }
 
 
-
-        [HttpGet("{id}")]
-        public ActionResult<Topic> Get(int id)
+        [HttpGet("[action]")]
+        public ActionResult<IEnumerable<TopicView>> Search(string searchPart)
         {
             try
             {
-                var dbTopic = _context.Topics.FirstOrDefault(x => x.Id == id);
-                if (dbTopic is null) return NotFound();
+                var dbtopics = _context.Topics.Include(t => t.Tags).Include(t => t.Category).Include(t => t.Posts).ThenInclude(x => x.User);
+                dbtopics.Where(x => x.Title.Contains(searchPart));
+                List<TopicView> topics = new List<TopicView>();
+                foreach (var item in dbtopics)
+                {
+                    var view = new TopicView()
+                    {
+                        CategoryName = item.Category.Name,
+                        CreatedAt = item.CreatedAt.Value,
+                        Description = item.Description,
+                        Id = item.Id,
+                        Posts = item.Posts.Select(x => new PostPreview() { Id = x.Id, Content = x.Content, PostedAt = x.PostedAt.Value, Username = x.User.Username }).ToList(),
+                        TagNames = item.Tags.Select(x => x.Name).ToList(),
+                        Title = item.Title
+                    };
+                    topics.Add(view);
+                }
 
-                return Ok(dbTopic);
+                return Ok(topics);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Error in Topic/Search", e.Message, 5);
+                return StatusCode(StatusCodes.Status500InternalServerError, "There has been a problem while fetching the data you requested");
+            }
+        }
+
+
+
+        [HttpGet("{id}")]
+        public ActionResult<TopicView> Get(int id)
+        {
+            try
+            {
+                var dbTopic = _context.Topics.Include(t => t.Tags).Include(t => t.Category).Include(t => t.Posts).ThenInclude(x => x.User).FirstOrDefault(x => x.Id == id); ;
+                if (dbTopic is null) 
+                {
+                    _logger.LogError("User Error in Topic/Get", $"User tried to get topic of id={id}", 1);
+                    return NotFound(); 
+                }
+                var view = new TopicView()
+                {
+                    CategoryName = dbTopic.Category.Name,
+                    CreatedAt = dbTopic.CreatedAt.Value,
+                    Description = dbTopic.Description,
+                    Id = dbTopic.Id,
+                    Posts = dbTopic.Posts.Select(x => new PostPreview() { Id = x.Id, Content = x.Content, PostedAt = x.PostedAt.Value, Username = x.User.Username }).ToList(),
+                    TagNames = dbTopic.Tags.Select(x => x.Name).ToList(),
+                    Title = dbTopic.Title
+                };
+
+                return Ok(view);
             }
             catch (Exception e)
             {
@@ -81,6 +128,8 @@ namespace WebApp.Controllers
             {
                 if (!ModelState.IsValid)
                 {
+                    _logger.LogError("User Error in Topic/Put", $"Modelstate Isnt Valid", 1);
+
                     return BadRequest(ModelState);
                 }
 
@@ -88,6 +137,7 @@ namespace WebApp.Controllers
 
                 if (dbTopic is null)
                 {
+                    _logger.LogError("User Error in Topic/Put", $"User tried to put topic of id={id}", 1);
                     return NotFound();
                 }
                 var dbtags = _context.Tags;
@@ -126,6 +176,7 @@ namespace WebApp.Controllers
             {
                 if (!ModelState.IsValid)
                 {
+                    _logger.LogError("User Error in Topic/Post", $"Modelstate Isnt Valid", 1);
                     return BadRequest(ModelState);
                 }
 
@@ -170,6 +221,7 @@ namespace WebApp.Controllers
                 var dbtopic = _context.Topics.FirstOrDefault(x => x.Id == id);
                 if (dbtopic is null)
                 {
+                    _logger.LogError("User Error in Topic/Delete", $"User tried to delete topic of id={id}", 1);
                     return NotFound();
                 }
 

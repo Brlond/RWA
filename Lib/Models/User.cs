@@ -18,7 +18,8 @@ public partial class User
     [StringLength(255)]
     public string PasswordHash { get; set; } = null!;
 
-    public int PasswordSalt { get; set; }
+    [StringLength(255)]
+    public string PasswordSalt { get; set; } = null!;
 
     [StringLength(256)]
     public string FirstName { get; set; } = null!;

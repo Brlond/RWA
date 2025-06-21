@@ -3,6 +3,7 @@ using Lib.Services;
 using Lib.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using WebApp.DTO;
 
 namespace WebApp.Controllers
@@ -49,6 +50,34 @@ namespace WebApp.Controllers
 
         }
 
+        [HttpGet("[action]")]
+        public ActionResult<IEnumerable<TagView>> Search(string searchPart)
+        {
+            try
+            {
+                var dbtags = _context.Tags.Where(x => x.Name.Contains(searchPart));
+
+                List<TagView> tags = new List<TagView>();
+                foreach (var tag in dbtags)
+                {
+                    var tagview = new TagView
+                    {
+                        Id = tag.Id,
+                        Name = tag.Name,
+                        TopicTitles = tag.Topics.Select(x => x.Title).ToList(),
+                    };
+                    tags.Add(tagview);
+                }
+
+                return Ok(tags);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Error in Tag/Search", e.Message, 5);
+                return StatusCode(StatusCodes.Status500InternalServerError, "There has been a problem while fetching the data you requested");
+            }
+        }
+
         [HttpGet("{id}")]
         public ActionResult<TagView> Get(int id)
         {
@@ -57,6 +86,7 @@ namespace WebApp.Controllers
                 var dbTag = _context.Tags.FirstOrDefault(x => x.Id == id);
                 if (dbTag is null)
                 {
+                    _logger.LogError("User Error in Tag/Get", $"User tried to get tag of id={id}", 1);
                     return NotFound();
                 }
 
@@ -71,7 +101,7 @@ namespace WebApp.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError("Error in Tag/Get", e.Message, 3);
+                _logger.LogError("User Error in Tag/Get", e.Message, 3);
                 return StatusCode(StatusCodes.Status500InternalServerError, "There has been a problem while fetching the data you requested");
             }
 
@@ -85,6 +115,7 @@ namespace WebApp.Controllers
             {
                 if (!ModelState.IsValid)
                 {
+                    _logger.LogError("User Error in Tag/Put", $"Modelstate isnt valid", 1);
                     return BadRequest(ModelState);
                 }
 
@@ -93,6 +124,7 @@ namespace WebApp.Controllers
 
                 if (dbTag is null)
                 {
+                    _logger.LogError("User Error in Tag/Put", $"User tried to put tag of id={id}", 1);
                     return NotFound();
                 }
 
@@ -118,6 +150,7 @@ namespace WebApp.Controllers
             {
                 if (!ModelState.IsValid)
                 {
+                    _logger.LogError("User Error in Tag/Post", $"Modelstate isnt valid", 1);
                     return BadRequest(ModelState);
                 }
 
@@ -151,6 +184,7 @@ namespace WebApp.Controllers
                 var dbTag = _context.Tags.FirstOrDefault(x => x.Id == id);
                 if (dbTag is null)
                 {
+                    _logger.LogError("User Error in Tag/Delete", $"User tried to delete tag of id={id}", 1);
                     return NotFound();
                 }
 

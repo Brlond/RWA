@@ -1,6 +1,7 @@
 ﻿using Lib.Models;
 using Lib.Services;
 using Lib.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,7 @@ namespace WebApp.Controllers
         }
 
         [HttpGet("[action]")]
+        [Authorize]
         public ActionResult<IEnumerable<PostView>> GetAll()
         {
             try
@@ -55,6 +57,41 @@ namespace WebApp.Controllers
             }
         }
 
+
+
+
+        [HttpGet("[action]")]
+        public ActionResult<IEnumerable<PostView>> Search(string searchPart)
+        {
+            try
+            {
+                var dbposts = _context.Posts.Where(x => x.Content.Contains(searchPart));
+                List<PostView> posts = new List<PostView>();
+                foreach (var post in dbposts)
+                {
+                    var postview = new PostView
+                    {
+                        Id = post.Id,
+                        Content = post.Content,
+                        TopicTitle = post.Topic.Title,
+                        Scores = post.Ratings.Select(r => (int)r.Score).ToList(),
+                        Username = post.User.Username,
+                        Approved = post.Approved.Value,
+                        PostedAt = post.PostedAt.Value,
+
+                    };
+                    posts.Add(postview);
+                }
+
+                return Ok(posts);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Error in Post/Search", e.Message, 5);
+                return StatusCode(StatusCodes.Status500InternalServerError, "There has been a problem while fetching the data you requested");
+            }
+        }
+
         [HttpGet("{id}")]
         public ActionResult<PostView> Get(int id)
         {
@@ -63,7 +100,7 @@ namespace WebApp.Controllers
                 var dbpost = _context.Posts.FirstOrDefault(t => t.Id == id);
                 if (dbpost is null)
                 {
-                    _logger.LogError("Not Found", "Not Found", 1);
+                    _logger.LogError("User Error in Post/Get", $"User tried to get post of id = {id}", 1);
                     return NotFound();
                 }
 
@@ -97,7 +134,7 @@ namespace WebApp.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    _logger.LogError("Modelstate isnt valid", " wa ", 1);
+                    _logger.LogError("User Error in Post/Put", $"Modelstate isnt valid", 1);
                     return BadRequest();
                 }
 
@@ -105,7 +142,7 @@ namespace WebApp.Controllers
 
                 if (dbPost is null)
                 {
-                    _logger.LogError("Post not found", "Null reference", 1);
+                    _logger.LogError("User Error in Post/Put", $"User tried to put post of id = {id}", 1);
                     return NotFound();
                 }
 
@@ -166,7 +203,7 @@ namespace WebApp.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    _logger.LogError("Modelstate isnt valid", " wa ", 1);
+                    _logger.LogError("User Error in Post/Post", $"Modelstate isnt valid", 1);
                     return BadRequest();
                 }
 
@@ -214,7 +251,7 @@ namespace WebApp.Controllers
                 var dbPost = _context.Posts.FirstOrDefault(x => x.Id == id);
                 if (dbPost is null)
                 {
-                    _logger.LogError("Post not found", "Null reference", 1);
+                    _logger.LogError("User Error in Post/Get", $"User tried to delete post of id = {id}", 1);
                     return NotFound();
                 }
 

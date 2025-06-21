@@ -1,0 +1,33 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Viewer</title>
+    <script src="../JS/Links.js"></script>
+    <script src="../JS/Links.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="mb-4">Log Viewer</h2>
+
+        <label for="itemCount" class="form-label">Logs per page:</label>
+        <select id="itemCount" class="form-select mb-4" style="width: 150px;">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+        </select>
+        <nav>
+            <ul id="pagination" class="pagination"></ul>
+        </nav>
+        <div id="logContainer" class="mb-4"></div>
+
+
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"></script>
+    <script src="../JS/Logs.js" 
+            crossorigin="anonymous"></script>
+</body>
+</html>

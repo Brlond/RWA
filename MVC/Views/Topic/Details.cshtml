@@ -1,0 +1,55 @@
+﻿@using MVC.ViewModels
+@model MVC.ViewModels.TopicVM
+
+@{
+    ViewData["Title"] = Model.Title;
+    var posts = ViewBag.Posts as List<PostVM>;
+}
+
+<h1>@Model.Title</h1>
+
+<div class="mb-3">
+    <p><strong>Category:</strong> @Model.CategoryName</p>
+    <p><strong>Tags:</strong> @string.Join(", ", Model.TagNames)</p>
+    <p><strong>Posted on:</strong> @Model.Publish_Date?.ToString("g")</p>
+    <p>@Model.Description</p>
+</div>
+
+<hr />
+
+<h3>Posts</h3>
+
+@if (posts != null && posts.Any())
+{
+    foreach (var post in posts)
+    {
+        <div class="card mb-3">
+            <div class="card-body">
+                <p>@post.Content</p>
+                <p class="text-muted mb-0">
+                    Posted by <strong>@post.CreatorUsername</strong> on @post.Published_Date?.ToString("g")
+                    | <strong>Score:</strong> @post.Score
+                </p>
+            </div>
+        </div>
+    }
+}
+else
+{
+    <p>No posts yet. Be the first to contribute!</p>
+}
+
+
+<hr />
+
+<!-- New Post Form -->
+<h4>Add Your Post</h4>
+<form asp-action="AddPost" asp-controller="Post" method="post">
+    <input type="hidden" name="TopicId" value="@Model.Id" />
+
+    <div class="form-group mb-3">
+        <textarea name="Content" class="form-control" rows="4" required placeholder="Share your thoughts..."></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Post</button>
+</form>

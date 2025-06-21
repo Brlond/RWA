@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Lib.Models;
 
 [Table("Tag")]
-[Index("Name", Name = "UQ__Tag__737584F6347E0865", IsUnique = true)]
+[Index("Name", Name = "UQ__Tag__737584F60D459720", IsUnique = true)]
 public partial class Tag
 {
     [Key]
