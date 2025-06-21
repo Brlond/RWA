@@ -1,167 +1,136 @@
 ﻿using Lib.Models;
 using Lib.Security;
-using Lib.Services;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
-using WebApp.DTO;
+using Microsoft.Extensions.Options;
+using MVC.ViewModels;
+using System.Security.Claims;
 
-namespace WebApp.Controllers
+namespace MVC.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class UserController : ControllerBase
+    public class UserController : Controller
     {
         private readonly RwaContext _context;
 
-        private readonly ILogService _logger;
-
-        private readonly IConfiguration _configuration;
-
-        public UserController(RwaContext context, ILogService logger, IConfiguration configuration)
+        public UserController(RwaContext context)
         {
             _context = context;
-            _logger = logger;
-            _configuration = configuration;
         }
 
+        public IActionResult Login(string returnUrl)
+        {
+            var Loginvm = new LoginVM
+            {
+                ReturnUrl = returnUrl,
+            };
+            return View();
+        }
 
-        [HttpPost("[action]")]
-        public ActionResult<UserRegisterDTO> Register(UserRegisterDTO register)
+        [HttpPost]
+        public IActionResult Login(LoginVM loginVm)
+        {
+            var existingUser = _context.Users.FirstOrDefault(x => x.Username == loginVm.Username);
+            if (existingUser is null)
+            {
+                ModelState.AddModelError("", "Invalid username or password");
+                return View();
+            }
+
+            var b64hash = PasswordHashProvider.GetHash(loginVm.Password, existingUser.PasswordSalt);
+            if (b64hash != existingUser.PasswordHash)
+            {
+                ModelState.AddModelError("", "Invalid username or password");
+                return View();
+            }
+            string role = existingUser.IsAdmin == true ? "Admin" : "User";
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, loginVm.Username),
+                new Claim(ClaimTypes.Role, role)
+            };
+
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+            var authProperties = new AuthenticationProperties();
+
+            Task.Run(async () => await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity),
+                authProperties)).GetAwaiter().GetResult();
+
+            if (loginVm.ReturnUrl != null)
+                return LocalRedirect(loginVm.ReturnUrl);
+            else if (role == "Admin")
+                return RedirectToAction("Index", "AdminHome");
+            else if (role == "User")
+                return RedirectToAction("Index", "Home");
+            else
+                return View();
+
+        }
+
+        public ActionResult Register()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult Register(UserVM userVM)
         {
             try
             {
-                var username = register.Username.Trim();
-                if (_context.Users.Any(x => x.Username.Equals(username)))
+                var trimmedUsername = userVM.Username.Trim();
+                if (_context.Users.Any(x => x.Username.Equals(trimmedUsername)))
                 {
-                    _logger.LogError("Error in User/Register", "User tried to register with already existing username", 1);
-                    return BadRequest($"Username : {username} already exists");
+                    return BadRequest($"Username {trimmedUsername} is taken");
                 }
 
                 var b64salt = PasswordHashProvider.GetSalt();
-                var b64hash = PasswordHashProvider.GetHash(register.Password, b64salt);
+                var b64hash = PasswordHashProvider.GetHash(userVM.Password, b64salt);
 
                 var user = new User
                 {
-                    Id = register.Id,
-                    Username = register.Username,
-                    Email = register.Email,
-                    FirstName = register.FirstName,
-                    IsAdmin = false,
-                    LastName = register.LastName,
-                    PasswordHash = b64hash,
+                    Email = userVM.Email,
+                    FirstName = userVM.FirstName,
+                    LastName = userVM.LastName,
                     PasswordSalt = b64salt,
+                    PasswordHash = b64hash,
+                    Username = userVM.Username,
+                    IsAdmin = false
                 };
-                _context.Users.Add(user);
+                _context.Add(user);
                 _context.SaveChanges();
-
-                register.Id = user.Id;
-
-                return Ok(register);
+                userVM.Id = user.Id;
+                return RedirectToAction("Login", "User");
             }
             catch (Exception e)
             {
-                _logger.LogError("Error in User/Register", e.Message, 5);
-                return StatusCode(StatusCodes.Status500InternalServerError, "There has been a problem while fetching the data you requested");
+                return StatusCode(500, e.Message);
             }
         }
 
-
-        [HttpPost("[action]")]
-        public ActionResult<UserLoginDTO> Login(UserLoginDTO login)
+        public ActionResult Logout()
         {
+            Task.Run(async () => await HttpContext.SignOutAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme)
+            ).GetAwaiter().GetResult();
 
-            try
-            {
-                var user = _context.Users.FirstOrDefault(x => x.Username == login.Username);
-                if (user is null)
-                {
-                    _logger.LogError("User Error in User/Login", $"User tried to login using nonexistent username {login.Username}", 1);
-                    return Unauthorized("Incorrect username or password");
-                }
-
-
-                var hash = PasswordHashProvider.GetHash(login.Password, user.PasswordSalt);
-                if (hash != user.PasswordHash)
-                {
-                    _logger.LogError("User Error in User/Login", $"User tried to login into {login.Username} with wrong password", 1);
-                    return Unauthorized("Incorrect username or password");
-                }
-
-                var SKey = _configuration["JWT:SecureKEy"];
-                var token = JwtTokenProvider.CreateToken(SKey, 60, login.Username, "User");
-                return Ok(token);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError("Error in User/Login", e.Message, 5);
-                return StatusCode(StatusCodes.Status500InternalServerError, "There has been a problem while fetching the data you requested");
-            }
+            return View();
         }
-
-
-
-        [HttpPut("[action]/{id}")]
-        public ActionResult<UserLoginDTO> Edit(int id, [FromBody] UserEditDTO login)
+        public ActionResult Details()
         {
-
-            try
+            string username = HttpContext.User.Identity.Name;
+            var dbuser = _context.Users.FirstOrDefault(x => x.Username == username);
+            var user = new UserVM
             {
-                var user = _context.Users.FirstOrDefault(x => x.Id == id);
-                if (user is null)
-                {
-                    _logger.LogError("User Error in User/ChangePassword", $"User not found with id = {id}", 1);
-                    return NotFound();
-                }
-                user.FirstName = login.FirstName;
-                user.LastName = login.LastName;
-                user.Email = login.Email;
-                _context.SaveChanges();
-                return Ok("User Edited Successfully");
-
-            }
-            catch (Exception e)
-            {
-                _logger.LogError("Error in User/Login", e.Message, 5);
-                return StatusCode(StatusCodes.Status500InternalServerError, "There has been a problem while fetching the data you requested");
-            }
+                Id = dbuser.Id,
+                Email = dbuser.Email,
+                FirstName = dbuser.FirstName,
+                LastName = dbuser.LastName,
+                Username = dbuser.Username,
+            };
+            return View(user);
         }
-
-
-
-        [HttpPost("[action]/{id}")]
-        public ActionResult<UserLoginDTO> ChangePassword(int id, UserChangePWDDTO login)
-        {
-
-            try
-            {
-                var user = _context.Users.FirstOrDefault(x => x.Id == id);
-                if (user is null)
-                {
-                    _logger.LogError("User Error in User/ChangePassword", $"User not found with id = {id}", 1);
-                    return NotFound();
-                }
-                var hash = PasswordHashProvider.GetHash(login.Password, user.PasswordSalt);
-                if (hash != user.PasswordHash)
-                {
-                    _logger.LogError("User Error in User/ChangePassword", $"User put wrong password", 1);
-                    return Unauthorized("Incorrect username or password");
-                }
-                var b64salt = PasswordHashProvider.GetSalt();
-                var b64hash = PasswordHashProvider.GetHash(login.NewPassword, b64salt);
-
-                user.PasswordSalt = b64salt;
-                user.PasswordHash = b64hash;
-                _context.SaveChanges();
-                return Ok("Password Changed Successfully");
-
-            }
-            catch (Exception e)
-            {
-                _logger.LogError("Error in User/Login", e.Message, 5);
-                return StatusCode(StatusCodes.Status500InternalServerError, "There has been a problem while fetching the data you requested");
-            }
-        }
-
     }
 }
