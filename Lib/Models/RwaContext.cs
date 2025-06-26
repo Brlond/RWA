@@ -29,8 +29,8 @@ public partial class RwaContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("server=GAMING;User Id=sa;Password=Pa55w.rd;Database=RWA;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True");
+    //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    //    => optionsBuilder.UseSqlServer("server=GAMING;User Id=sa;Password=Pa55w.rd;Database=RWA;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
