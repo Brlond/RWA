@@ -5,23 +5,19 @@
 }
 
 <h1>Users</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
 <table class="table">
     <thead>
         <tr>
             <th>
                 @Html.DisplayNameFor(model => model.Username)
             </th>
+            <th>
             @Html.DisplayNameFor(model => model.FirstName)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.LastName)
             <th>
                 @Html.DisplayNameFor(model => model.PostCount)
-            </th>
             </th>
             <th></th>
         </tr>
@@ -43,7 +39,7 @@
                     @Html.DisplayFor(modelItem => item.PostCount)
                 </td>
                 <td>
-                    <a asp-controller="Post" asp-action="GetByUsers" asp-route-id="@item.UserId">Details</a>
+                    <a asp-controller="Post" asp-action="GetByUsers" asp-route-id="@item.UserId">Posts</a>
                 </td>
             </tr>
         }

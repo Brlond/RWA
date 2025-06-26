@@ -1,4 +1,5 @@
 using Lib.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MVC.Models;
@@ -7,6 +8,7 @@ using System.Diagnostics;
 
 namespace MVC.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly RwaContext _context;

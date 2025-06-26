@@ -65,8 +65,7 @@ namespace WebAPI.Controllers
         {
             try
             {
-                var dbtopics = _context.Topics.Include(t => t.Tags).Include(t => t.Category).Include(t => t.Posts).ThenInclude(x => x.User);
-                dbtopics.Where(x => x.Title.Contains(searchPart));
+                var dbtopics = _context.Topics.Include(t => t.Tags).Include(t => t.Category).Include(t => t.Posts).ThenInclude(x => x.User).Where(x => x.Title.Contains(searchPart));
                 List<TopicView> topics = new List<TopicView>();
                 foreach (var item in dbtopics)
                 {

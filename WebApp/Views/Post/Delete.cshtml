@@ -1,6 +1,13 @@
 ﻿@model MVC.ViewModels.PostVM
 @{
     ViewData["Title"] = "Delete";
+    var user = ViewContext.HttpContext.User;
+    string username = user.Identity.Name;
+    bool isadmin = false;
+    if (user.IsInRole("Admin"))
+    {
+        isadmin = true;
+    }
 }
 
 <h1>Delete</h1>
@@ -41,10 +48,17 @@
             @Html.DisplayFor(model => model.CreatorUsername)
         </dd>
     </dl>
-    
+
     <form asp-action="Delete">
         <input type="hidden" asp-for="Id" />
         <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
+        @if (!isadmin)
+        {
+            <a asp-area="" asp-controller="Post" asp-action="GetByUsersString" asp-route-username="@username">Back to List</a>
+        }
+        else
+        {
+            <a asp-action="Index">Back to List</a>
+        }
     </form>
 </div>

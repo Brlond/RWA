@@ -8,17 +8,18 @@
     <div class="topics-grid">
         <div class="row">
 
-        @foreach (var topic in ViewBag.TopTopics)
-        {
-            <div class="cold-md-4">
-                <div class="topic-card" style="border: 2px solid #ccc; border-radius: 8px; padding: 16px; margin: 12px 0;">
-                    <h3>@topic.Title</h3>
-                    <p>@topic.Description</p>
-                    <p><strong></strong> comments</p>
-                    <a href="/Topics/Details/@topic.Id" class="btn btn-sm btn-outline-primary">View Topic</a>
+            @foreach (var topic in ViewBag.TopTopics)
+            {
+                <div class="cold-md-4">
+                    <div class="topic-card" style="border: 2px solid #ccc; border-radius: 8px; padding: 16px; margin: 12px 0;">
+                        <h3>@topic.Title</h3>
+                        <p>@topic.Description</p>
+                        <p><strong></strong> comments</p>
+
+                        <a asp-controller="Topic" asp-action="Details" class="btn btn-sm btn-outline-primary" asp-route-id="@topic.Id">Go to Topic</a>
+                    </div>
                 </div>
-            </div>
-        }
+            }
         </div>
     </div>
 </div>

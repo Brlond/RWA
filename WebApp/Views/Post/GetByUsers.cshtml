@@ -2,14 +2,25 @@
 
 @{
     ViewData["Title"] = "GetByUsers";
-    var User = ViewBag.User;
+    var user = ViewContext.HttpContext.User;
+    bool isadmin = false;
+    if (user.IsInRole("Admin"))
+    {
+        isadmin = true;
+    }
 }
 
-<h1>Posts of </h1>
+<h1>Posts of @user.Identity.Name</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
+@if (isadmin)
+{
+    <p>
+        <a asp-action="Create">Create New</a>
+        <hr />
+        <a asp-controller="User" asp-action="Users">Back to List</a>
+
+    </p>
+}
 <table class="table">
     <thead>
         <tr>
@@ -23,38 +34,33 @@
                 @Html.DisplayNameFor(model => model.Published_Date)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Id)
-            </th>
-            <th>
                 @Html.DisplayNameFor(model => model.Score)
             </th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.TopicTitle)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Content)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Published_Date)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Id)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Score)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.TopicTitle)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Content)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Published_Date)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Score)
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

@@ -2,6 +2,7 @@
 using Lib.Security;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MVC.ViewModels;
@@ -142,7 +143,7 @@ namespace MVC.Controllers
 
 
 
-
+        [Authorize(Roles ="Admin")]
         public ActionResult Users()
         {
             var dbusers = _context.Users.Include(x=>x.Posts).Include(x=>x.Ratings);
@@ -155,11 +156,6 @@ namespace MVC.Controllers
                 Username = x.Username,
                 UserId = x.Id,
             });
-
-
-
-
-
             return View(users);
         }
     }

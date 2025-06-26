@@ -2,6 +2,13 @@
 
 @{
     ViewData["Title"] = "Details";
+    var user = ViewContext.HttpContext.User;
+    string username = user.Identity.Name;
+    bool isadmin = false;
+    if (user.IsInRole("Admin"))
+    {
+        isadmin = true;
+    }
 }
 
 <h1>Details</h1>
@@ -44,5 +51,12 @@
 </div>
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    @if (!isadmin)
+    {
+        <a asp-area="" asp-controller="Post" asp-action="GetByUsersString" asp-route-username="@username">Back to List</a>
+    }
+    else
+    {
+        <a asp-action="Index">Back to List</a>
+    }
 </div>

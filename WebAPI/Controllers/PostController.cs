@@ -66,7 +66,7 @@ namespace WebApp.Controllers
         {
             try
             {
-                var dbposts = _context.Posts.Where(x => x.Content.Contains(searchPart));
+                var dbposts = _context.Posts.Include(x=>x.Topic).Include(x=>x.User).Include(x=>x.Ratings).Where(x => x.Content.Contains(searchPart));
                 List<PostView> posts = new List<PostView>();
                 foreach (var post in dbposts)
                 {
@@ -99,7 +99,7 @@ namespace WebApp.Controllers
         {
             try
             {
-                var dbpost = _context.Posts.FirstOrDefault(t => t.Id == id);
+                var dbpost = _context.Posts.Include(x => x.Topic).Include(x => x.User).Include(x => x.Ratings).FirstOrDefault(t => t.Id == id);
                 if (dbpost is null)
                 {
                     _logger.LogError("User Error in Post/Get", $"User tried to get post of id = {id}", 1);
@@ -141,7 +141,7 @@ namespace WebApp.Controllers
                     return BadRequest();
                 }
 
-                var dbPost = _context.Posts.FirstOrDefault(x => x.Id == id);
+                var dbPost = _context.Posts.Include(x => x.Topic).Include(x => x.User).Include(x => x.Ratings).FirstOrDefault(x => x.Id == id);
 
                 if (dbPost is null)
                 {
@@ -179,13 +179,15 @@ namespace WebApp.Controllers
 
 
                 var scores = dbPost.Ratings.Select(x => x.Score.Value);
-                post = new PostDTO
+                var postview = new PostView
                 {
-                    Content = dbPost.Content,
                     Id = dbPost.Id,
-                    Scores = (List<int>)scores,
-                    TopicId = (int)dbPost.TopicId,
-                    UserId = (int)dbPost.UserId
+                    Content = dbPost.Content,
+                    TopicTitle = dbPost.Topic.Title,
+                    Username = dbPost.User.Username,
+                    Scores = dbPost.Ratings.Select(r => (int)r.Score).ToList(),
+                    Approved = dbPost.Approved.Value,
+                    PostedAt = dbPost.PostedAt.Value,
                 };
                 return Ok(post);
 

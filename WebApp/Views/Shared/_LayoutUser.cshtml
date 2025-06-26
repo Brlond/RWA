@@ -31,6 +31,9 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Topic" asp-action="Index">Topics </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Post" asp-action="GetByUsersString" asp-route-username="@username">My Posts</a>
+                        </li>
                     </ul>
                     <div class="d-flex">
                         <a class="nav-link" asp-area="" asp-controller="User" asp-action="Logout">Log Out</a>

@@ -175,6 +175,8 @@ namespace MVC.Controllers
                 UserId = user.Id,
             };
             ViewBag.PostVM = postvm;
+            Console.WriteLine(username);
+            Console.WriteLine(user);
             return View(postsearch);
         }
 
