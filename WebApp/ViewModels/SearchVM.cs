@@ -9,7 +9,7 @@
         public int FromPager { get; set; }
         public int ToPager { get; set; }
         public int Size { get; set; } = 10;
-        public List<TopicVM> Topics { get; set; }
+        public List<TopicVM>? Topics { get; set; }
 
     }
 }

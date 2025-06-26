@@ -121,6 +121,11 @@ namespace WebApp.Controllers
         {
             try
             {
+                if (_context.Categories.Any(x=>x.Name==category.Name))
+                {
+                    _logger.LogError("User Error in Category/Post", $"User tried to insert duplicate Category", 1);
+                    return BadRequest();
+                }
                 if (!ModelState.IsValid)
                 {
                     _logger.LogError("User Error in Category/Post", $"Modelstate isnt valid", 1);

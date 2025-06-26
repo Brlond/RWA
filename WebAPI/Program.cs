@@ -11,12 +11,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
         policy => policy
             .WithOrigins("http://localhost:8081")
             .AllowAnyHeader()
+            .AllowCredentials()
             .AllowAnyMethod());
 });
 

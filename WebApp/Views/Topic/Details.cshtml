@@ -1,35 +1,96 @@
 ﻿@using MVC.ViewModels
-@model MVC.ViewModels.TopicVM
+@using Newtonsoft.Json
+@model MVC.ViewModels.PostSearchVM
 
 @{
-    ViewData["Title"] = Model.Title;
-    var posts = ViewBag.Posts as List<PostVM>;
+    ViewData["Title"] = Model.Topic.Title;
+    var posts = Model.Posts;
+    var jwt = @Html.Raw(JsonConvert.SerializeObject(ViewBag.JWT));
 }
 
-<h1>@Model.Title</h1>
+<h1>@Model.Topic.Title</h1>
 
-<div class="mb-3">
-    <p><strong>Category:</strong> @Model.CategoryName</p>
-    <p><strong>Tags:</strong> @string.Join(", ", Model.TagNames)</p>
-    <p><strong>Posted on:</strong> @Model.Publish_Date?.ToString("g")</p>
-    <p>@Model.Description</p>
+<div class="mb-3 topic" data-topic-id="@Model.Topic.Id">
+    <p><strong>Category:</strong> @Model.Topic.CategoryName</p>
+    <p><strong>Tags:</strong> @string.Join(", ", Model.Topic.TagNames)</p>
+    <p><strong>Posted on:</strong> @Model.Topic.Publish_Date?.ToString("g")</p>
+    <p>@Model.Topic.Description</p>
 </div>
 
 <hr />
+<form asp-action="Details" method="GET">
+    <div class="row">
+        <nav>
+            <ul class="pagination">
+                @for (int i = Model.FromPager; i <= Model.ToPager; i++)
+                {
+                    var linkText = @i.ToString();
+                    if (i != 1 && i == Model.FromPager)
+                    {
+                        linkText = "«";
+                    }
+                    else if (i != Model.LastPage && i == Model.ToPager)
+                    {
+                        linkText = "»";
+                    }
 
+                    var linkClass = "page-item";
+                    if (i == Model.Page)
+                    {
+                        linkClass = "page-item active";
+                    }
+                    <li class="@linkClass">
+                        @Html.ActionLink(
+                                 @linkText,
+                                 "Details",
+                                 new
+                                 {
+                                     orderby = Model.OrderBy,
+                                     page = i,
+                                     size = Model.Size
+                                 },
+                                 new { @class = "page-link" })
+                    </li>
+                }
+            </ul>
+        </nav>
+        <div class="col-auto">
+            <label class="form-label mt-1">Sort by:</label>
+        </div>
+        <div class="col-auto">
+            <select asp-for="OrderBy" class="form-select">
+                <option value="id">(default)</option>
+                <option>Date</option>
+                <option>Content</option>
+                <option>Content-Length</option>
+                <option>Score</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <input type="submit" value="Go" class="btn btn-primary" />
+        </div>
+    
+    </div>
+</form>
 <h3>Posts</h3>
 
 @if (posts != null && posts.Any())
 {
     foreach (var post in posts)
     {
-        <div class="card mb-3">
+        <div class="card mb-3 post" data-post-id="@post.Id">
             <div class="card-body">
                 <p>@post.Content</p>
                 <p class="text-muted mb-0">
                     Posted by <strong>@post.CreatorUsername</strong> on @post.Published_Date?.ToString("g")
                     | <strong>Score:</strong> @post.Score
                 </p>
+            </div>
+            <div class="star-rating" data-selected="0" data-post-id="@post.Id">
+                @for (int i = 1; i <= 5; i++)
+                {
+                    <i class="fa fa-star star" aria-hidden="true" data-value="@i"></i>
+                }
             </div>
         </div>
     }
@@ -44,12 +105,84 @@ else
 
 <!-- New Post Form -->
 <h4>Add Your Post</h4>
-<form asp-action="AddPost" asp-controller="Post" method="post">
-    <input type="hidden" name="TopicId" value="@Model.Id" />
+<form id="postform">
+    <input type="hidden" name="TopicId" value="@Model.Topic.Id" />
 
     <div class="form-group mb-3">
-        <textarea name="Content" class="form-control" rows="4" required placeholder="Share your thoughts..."></textarea>
+        <textarea name="Content" class="form-control" id="contenttxt" rows="4" required placeholder="Share your thoughts..."></textarea>
     </div>
 
     <button type="submit" class="btn btn-primary">Post</button>
 </form>
+
+
+
+@section Scripts {
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script>
+         const jwt = @Html.Raw(JsonConvert.SerializeObject(ViewBag.JWT));
+         const postVM = @Html.Raw(JsonConvert.SerializeObject(ViewBag.PostVM));
+         const userRatedPosts = @Html.Raw(Json.Serialize(ViewBag.UserRatedPosts));
+         $(document).ready(function () {
+            console.log(jwt);
+            $('.post').each(function () {
+            const postId = $(this).data('post-id');
+            const userRating = userRatedPosts[postId];
+            console.log(postVM);
+            if (userRating) {
+                const stars = $(this).find('.star');
+                stars.each(function (index) {
+                    if (index < userRating) {
+                        $(this).addClass('filled');
+                    }
+                    $(this).addClass('locked');
+                });
+            }
+            });
+             $("#postform").on('submit', function (e) {
+                e.preventDefault();
+                const postcontent = $('#contenttxt').val();
+                postVM.Content = postcontent;
+                $.ajax({
+                    method: "POST",
+                    url: "http://localhost:8080/api/Post/Post",
+                    data: JSON.stringify(postVM),
+                    headers: { "Authorization": `Bearer ${jwt}` },
+                    contentType: 'application/json'
+                }).done(function (response){location.reload();})
+                  .fail(function (err){alert("didnt work");});
+            });
+
+            $(".star").on("click", function () {
+                if ($(this).hasClass("locked")) return;
+                const rating = $(this).data("value");
+                const postId = $(this).closest(".post").data("post-id");
+                const usersname = $("#usersname").text();
+                let postData = {
+                    PostId: postId,
+                    UserName: usersname,
+                    Score: rating}
+                console.log(postData);
+                $.ajax({
+                    method: "POST",
+                    url: "http://localhost:8080/api/Rating/Post",
+                    data: JSON.stringify(postData),
+                    contentType: 'application/json'
+                }).done(function (response){location.reload();})
+                  .fail(function (err){alert("didnt work");});
+            });
+        });
+
+
+        function lockStars(postId, value) {
+            const stars = $(`.post[data-post-id='${postId}'] .star`);
+            stars.each(function (index) {
+                if (index < value) {
+                    $(this).addClass('filled');
+                }
+                $(this).addClass('locked');
+            });
+        }
+    </script>
+}

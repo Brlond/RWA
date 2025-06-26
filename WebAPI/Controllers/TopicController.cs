@@ -6,9 +6,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using WebApp.DTO;
 
-namespace WebApp.Controllers
+namespace WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -180,6 +181,11 @@ namespace WebApp.Controllers
         {
             try
             {
+                if (_context.Categories.Any(x => x.Name== topic.Title))
+                {
+                    _logger.LogError("User Error in Topic/Post", $"User tried to insert duplicate Topic", 1);
+                    return BadRequest();
+                }
                 if (!ModelState.IsValid)
                 {
                     _logger.LogError("User Error in Topic/Post", $"Modelstate Isnt Valid", 1);

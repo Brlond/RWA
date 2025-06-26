@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using MVC.ViewModels;
 
@@ -36,7 +37,7 @@ namespace MVC.Controllers
         // GET: PostController/Details/5
         public ActionResult Details(int id)
         {
-            var post = _context.Posts.FirstOrDefault(x=>x.Id==id);
+            var post = _context.Posts.Include(x=>x.Ratings).Include(x=>x.Topic).Include(x=>x.User).FirstOrDefault(x=>x.Id==id);
 
             var postvm = new PostVM
             {
@@ -131,7 +132,7 @@ namespace MVC.Controllers
         // GET: PostController/Delete/5
         public ActionResult Delete(int id)
         {
-            var dbpost = _context.Posts.FirstOrDefault(x => x.Id == id);
+            var dbpost = _context.Posts.Include(x=>x.User).Include(x=>x.Topic).Include(x=>x.Ratings).FirstOrDefault(x => x.Id == id);
             var postvm = new PostVM
             {
                 Id = dbpost.Id,
@@ -152,7 +153,6 @@ namespace MVC.Controllers
             try
             {
                 var dbpost = _context.Posts.FirstOrDefault(x=>x.Id==id);
-
                 _context.Posts.Remove(dbpost);
                 _context.SaveChanges();
 
@@ -162,6 +162,25 @@ namespace MVC.Controllers
             {
                 return View();
             }
+        }
+
+
+        public ActionResult GetByUsers(int id)
+        {
+            var dbposts = _context.Posts.Where(x => x.UserId == id);
+            var user = _context.Users.FirstOrDefault(x => x.Id == id);
+            ViewBag.User = user;
+            var posts = dbposts.Include(x=>x.Topic).Include(x=>x.Ratings).Select(x => new PostVM
+            {
+                Content = x.Content,
+                Published_Date = x.PostedAt,
+                CreatorUsername = user.Username,
+                Id = x.Id,
+                Score = x.Ratings.Count > 0 ? (int)Math.Round((decimal)x.Ratings.Average(r => r.Score)) : 0,
+                TopicId = (int)x.TopicId,
+                TopicTitle = x.Topic.Title
+            });
+            return View(posts);
         }
     }
 }

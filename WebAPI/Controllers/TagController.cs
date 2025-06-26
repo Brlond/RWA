@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApp.DTO;
 
-namespace WebApp.Controllers
+namespace WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -154,6 +154,11 @@ namespace WebApp.Controllers
         {
             try
             {
+                if (_context.Categories.Any(x => x.Name == tag.Name))
+                {
+                    _logger.LogError("User Error in Tag/Post", $"User tried to insert duplicate Tag", 1);
+                    return BadRequest();
+                }
                 if (!ModelState.IsValid)
                 {
                     _logger.LogError("User Error in Tag/Post", $"Modelstate isnt valid", 1);

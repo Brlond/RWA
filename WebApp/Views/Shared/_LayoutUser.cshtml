@@ -27,16 +27,14 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
+
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Topic" asp-action="Index">Topic</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Topic" asp-action="Index">Topics </a>
                         </li>
                     </ul>
                     <div class="d-flex">
                         <a class="nav-link" asp-area="" asp-controller="User" asp-action="Logout">Log Out</a>
-                        <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Details">@username</a>
+                        <a class="nav-link text-dark" id="usersname" asp-area="" asp-controller="User" asp-action="Details">@username</a>
                     </div>
                 </div>
             </div>

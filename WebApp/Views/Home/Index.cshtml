@@ -1,8 +1,24 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
+    var items = ViewBag.TopTopics as List<Lib.Models.Post>;
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="topics-preview">
+    <h2>🔥 Most Discussed Topics</h2>
+    <div class="topics-grid">
+        <div class="row">
+
+        @foreach (var topic in ViewBag.TopTopics)
+        {
+            <div class="cold-md-4">
+                <div class="topic-card" style="border: 2px solid #ccc; border-radius: 8px; padding: 16px; margin: 12px 0;">
+                    <h3>@topic.Title</h3>
+                    <p>@topic.Description</p>
+                    <p><strong></strong> comments</p>
+                    <a href="/Topics/Details/@topic.Id" class="btn btn-sm btn-outline-primary">View Topic</a>
+                </div>
+            </div>
+        }
+        </div>
+    </div>
 </div>

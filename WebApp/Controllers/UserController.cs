@@ -3,7 +3,7 @@ using Lib.Security;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
+using Microsoft.EntityFrameworkCore;
 using MVC.ViewModels;
 using System.Security.Claims;
 
@@ -12,10 +12,12 @@ namespace MVC.Controllers
     public class UserController : Controller
     {
         private readonly RwaContext _context;
+        private readonly IConfiguration _configuration;
 
-        public UserController(RwaContext context)
+        public UserController(RwaContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         public IActionResult Login(string returnUrl)
@@ -43,11 +45,14 @@ namespace MVC.Controllers
                 ModelState.AddModelError("", "Invalid username or password");
                 return View();
             }
+            var secureKey = _configuration["JWT:SecureKey"];
+            var serializedToken = JwtTokenProvider.CreateToken(secureKey, 60, loginVm.Username, "User");
             string role = existingUser.IsAdmin == true ? "Admin" : "User";
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, loginVm.Username),
-                new Claim(ClaimTypes.Role, role)
+                new Claim(ClaimTypes.Role, role),
+                new Claim("JWT",serializedToken)
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -62,7 +67,7 @@ namespace MVC.Controllers
             if (loginVm.ReturnUrl != null)
                 return LocalRedirect(loginVm.ReturnUrl);
             else if (role == "Admin")
-                return RedirectToAction("Index", "Topic");
+                return RedirectToAction("Index", "AdminHome");
             else if (role == "User")
                 return RedirectToAction("Index", "Home");
             else
@@ -131,6 +136,31 @@ namespace MVC.Controllers
                 Username = dbuser.Username,
             };
             return View(user);
+        }
+
+
+
+
+
+
+        public ActionResult Users()
+        {
+            var dbusers = _context.Users.Include(x=>x.Posts).Include(x=>x.Ratings);
+
+            var users = dbusers.Select(x => new UserListView
+            {
+                FirstName = x.FirstName,
+                LastName = x.LastName,
+                PostCount = x.Posts.Count(),
+                Username = x.Username,
+                UserId = x.Id,
+            });
+
+
+
+
+
+            return View(users);
         }
     }
 }

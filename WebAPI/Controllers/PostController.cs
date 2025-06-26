@@ -199,7 +199,7 @@ namespace WebApp.Controllers
 
         }
 
-        [HttpPost()]
+        [HttpPost("[action]")]
         [Authorize]
         public ActionResult<PostDTO> Post(PostDTO post)
         {
@@ -210,32 +210,22 @@ namespace WebApp.Controllers
                     _logger.LogError("User Error in Post/Post", $"Modelstate isnt valid", 1);
                     return BadRequest();
                 }
-
+                var dbuser = _context.Users.FirstOrDefault(x => x.Id == post.UserId);
+                var dbtopic = _context.Topics.FirstOrDefault(x => x.Id == post.TopicId);
                 var dbpost = new Post
                 {
                     UserId = post.UserId,
                     Content = post.Content,
                     TopicId = post.TopicId,
+                    User = dbuser,
+                    Topic = dbtopic,
                 };
-                var ratings = _context.Ratings.Where(x => x.Score.HasValue && post.Scores.Contains(x.Score.Value));
-                dbpost.Ratings = ratings.Select(x => new Rating { Score = x.Score }).ToList();
-                dbpost.User = _context.Users.FirstOrDefault(x => x.Id == dbpost.UserId);
-                dbpost.Topic = _context.Topics.FirstOrDefault(x => x.Id == dbpost.TopicId);
+                //var ratings = _context.Ratings.Where(x => x.Score.HasValue && post.Scores.Contains(x.Score.Value));
+                //dbpost.Ratings = ratings.Select(x => new Rating { Score = x.Score }).ToList();
 
                 _context.Posts.Add(dbpost);
                 _context.SaveChanges();
-
-                var scores = dbpost.Ratings.Select(x => x.Score.Value).ToList();
-                post = new PostDTO
-                {
-                    UserId = (int)dbpost.UserId,
-                    Content = dbpost.Content,
-                    TopicId = (int)dbpost.TopicId,
-                    Id = dbpost.Id,
-                    Scores = (List<int>)scores,
-
-                };
-
+                post.Id = dbpost.Id;
                 return Ok(post);
             }
             catch (Exception e)

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using MVC.ViewModels;
 using NuGet.Packaging;
 using NuGet.Protocol;
+using WebApp.DTO;
 
 namespace MVC.Controllers
 {
@@ -90,8 +91,13 @@ namespace MVC.Controllers
         }
 
         // GET: TopicController/Details/5
-        public ActionResult Details(int id)
+        public ActionResult Details(int id, PostSearchVM postsearch)
         {
+            string jwt = User.FindFirst("JWT")?.Value;
+            string username = HttpContext.User.Identity.Name;
+            var user = _context.Users.FirstOrDefault(x => x.Username == username);
+            ViewBag.UserRatedPosts = _context.Ratings.Where(x => x.UserId == user.Id).Where(r => r.PostId.HasValue).ToDictionary(r => r.PostId.Value, r => r.Score);
+            ViewBag.JWT = jwt;
             var dbtopic = _context
                 .Topics
                 .Include(x => x.Category)
@@ -99,17 +105,58 @@ namespace MVC.Controllers
                 .Include(x => x.Tags).ThenInclude(x => x.Topics).FirstOrDefault(x => x.Id == id);
 
 
-            ViewBag.Posts = dbtopic.Posts.Select(x => new PostVM
+            IQueryable<Post> postss = _context.Posts.Include(x => x.Ratings).Include(x => x.Topic).Include(x => x.User).Where(x=>x.TopicId==id);
+            
+            if (postsearch.OrderBy is not null)
+            {
+                switch (postsearch.OrderBy.ToLower())
+                {
+                    case "date":
+                        postss = postss.OrderByDescending(x => x.PostedAt);
+                        break;
+                    case "content":
+                        postss = postss.OrderBy(x => x.Content);
+                        break;
+                    case "content-length":
+                        postss = postss.OrderBy(x => x.Content);
+                        break;
+                    case "score":
+                        postss = postss.OrderByDescending(x => x.Ratings.Count > 0 ? (int)Math.Round((decimal)x.Ratings.Average(r => r.Score)) : 0);
+                        break;
+                    default:
+                        postss = postss.OrderBy(x => x.Id);
+                        break;
+                }
+            }
+
+
+            var filteredCount = postss.Count();
+            // BEGIN PAGER
+            var expandPages = _configuration.GetValue<int>("Paging:ExpandPages");
+            postsearch.LastPage = (int)Math.Ceiling(1.0 * filteredCount / postsearch.Size);
+            postsearch.FromPager = postsearch.Page > expandPages ?
+              postsearch.Page - expandPages :
+              1;
+            postsearch.ToPager = (postsearch.Page + expandPages) < postsearch.LastPage ?
+              postsearch.Page + expandPages :
+              postsearch.LastPage;
+            // END PAGER
+
+            postss = postss.Skip((postsearch.Page - 1) * postsearch.Size).Take(postsearch.Size);
+
+            List<PostVM> postVMs = postss.Select(x=> new PostVM
             {
                 Id = x.Id,
                 Content = x.Content,
-                CreatorUsername = x?.User?.Username,
-                Score = x?.Ratings.Count == 0 ? (int)Math.Round((decimal)x?.Ratings.Select(r => r?.Score).DefaultIfEmpty(0).Average()) : 0,
+                CreatorUsername = x.User.Username,
+                Score = x.Ratings.Count > 0 ? (int)Math.Round((decimal)x.Ratings.Average(r => r.Score)) : 0,
                 TopicId = (int)x.TopicId,
-                TopicTitle = x?.Topic.Title
+                TopicTitle = x.Topic.Title,
+                Published_Date = x.PostedAt,
             }).ToList();
 
-            var topic = new TopicVM
+            postsearch.Posts = postVMs;
+            postsearch.Topic = new TopicVM
             {
                 Id = dbtopic.Id,
                 TagIds = dbtopic.Tags.Select(x => x.Id).ToList(),
@@ -122,7 +169,13 @@ namespace MVC.Controllers
                 Title = dbtopic.Title,
             };
 
-            return View(topic);
+            PostDTO postvm = new PostDTO
+            {
+                TopicId = dbtopic.Id,
+                UserId = user.Id,
+            };
+            ViewBag.PostVM = postvm;
+            return View(postsearch);
         }
 
         // GET: TopicController/Create
@@ -186,11 +239,15 @@ namespace MVC.Controllers
         // POST: TopicController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin")]
         public ActionResult Create(TopicVM topic)
         {
             try
             {
+                if (_context.Topics.Any(x=>x.Title==topic.Title))
+                {
+                    return BadRequest("Topic Already exists");
+                }
 
                 if (!ModelState.IsValid)
                 {
@@ -258,8 +315,8 @@ namespace MVC.Controllers
 
                 dbtopic.Title = topicVM.Title;
                 dbtopic.Description = topicVM.Description;
-                dbtopic.CategoryId=topicVM.CategoryId;
-                dbtopic.Category = _context.Categories.FirstOrDefault(x=>x.Id==topicVM.CategoryId);
+                dbtopic.CategoryId = topicVM.CategoryId;
+                dbtopic.Category = _context.Categories.FirstOrDefault(x => x.Id == topicVM.CategoryId);
                 _context.RemoveRange(dbtopic.Tags);
                 dbtopic.Tags.AddRange(_context.Tags.Where(t => topicVM.TagIds.Contains(t.Id)).ToList());
 
@@ -276,7 +333,7 @@ namespace MVC.Controllers
         [Authorize(Roles = "Admin")]
         public ActionResult Delete(int id)
         {
-            var dbtopic = _context.Topics.FirstOrDefault(x=>x.Id==id);
+            var dbtopic = _context.Topics.FirstOrDefault(x => x.Id == id);
 
             var category = _context.Categories.FirstOrDefault(x => x.Id == dbtopic.CategoryId);
 
@@ -305,7 +362,7 @@ namespace MVC.Controllers
         {
             try
             {
-                var dbtopic = _context.Topics.FirstOrDefault(x=>x.Id==id);
+                var dbtopic = _context.Topics.FirstOrDefault(x => x.Id == id);
 
                 _context.Topics.Remove(dbtopic);
                 _context.SaveChanges();

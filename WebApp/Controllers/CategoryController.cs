@@ -61,6 +61,11 @@ namespace MVC.Controllers
                 {
                     Name = categoryVm.Name,
                 };
+                if (_context.Categories.Any(x => x.Name == categoryVm.Name))
+                {
+                    
+                    return BadRequest(); 
+                }
                 _context.Categories.Add(category);
                 _context.SaveChanges();
 

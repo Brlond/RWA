@@ -48,6 +48,10 @@ namespace MVC.Controllers
         {
             try
             {
+                if (_context.Tags.Any(x=>x.Name==tagvm.Name))
+                {
+                    return BadRequest("Tag Already exists");
+                }
                 var genre = new Tag
                 {
                     Name = tagvm.Name,

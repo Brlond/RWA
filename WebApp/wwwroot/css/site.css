@@ -1,4 +1,4 @@
-html {
+﻿html {
   font-size: 14px;
 }
 
@@ -19,4 +19,12 @@ html {
 
 body {
   margin-bottom: 60px;
+}
+.star {
+    color: gray;
+    cursor: pointer;
+}
+.star.filled {
+    color: gold; /* or whatever highlight color */
+    /* maybe add cursor: default; */
 }
