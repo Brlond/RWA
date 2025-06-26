@@ -34,7 +34,7 @@ GO
 CREATE TABLE Topic (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     Title NVARCHAR(255) NOT NULL,
-    Description TEXT,
+    Description NVARCHAR(MAX),
     CategoryId INT,
     CreatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (CategoryId) REFERENCES Category(Id)
@@ -99,9 +99,9 @@ INSERT INTO Category (Name) VALUES ('Design'), ('Programming'), ('Modeling'), ('
 GO
 
 -- Insert Users
-INSERT INTO [dbo].[User](Username, PasswordHash,PasswordSalt,FirstName,LastName, Email, IsAdmin)
-VALUE
-('admin', N'e/guJOH62Pv5WPE2T4/Qb38bkMoxx7xTXfs7p6GFb2w=', N'mHLo5lwiTwQspVDoIdvbxQ==' ,'admnin','admnin', 'admin@example.com', 1),
+INSERT INTO [dbo].[User] (Username, PasswordHash, PasswordSalt, FirstName, LastName, Email, IsAdmin)
+VALUES 
+('admin', N'e/guJOH62Pv5WPE2T4/Qb38bkMoxx7xTXfs7p6GFb2w=', N'mHLo5lwiTwQspVDoIdvbxQ==', 'admnin', 'admnin', 'admin@example.com', 1);
 GO
 
 -- Insert Tags
@@ -126,13 +126,6 @@ GO
 -- Insert Posts
 INSERT INTO Post (UserId, TopicId, Content, Approved)
 VALUES 
-(2, 1, 'Try using GPU instancing to reduce draw calls.', 1),
-(3, 2, 'Sketch each major scene before animating to save time.', 1);
-GO
-
--- Insert Ratings
-INSERT INTO Rating (UserId, PostId, Score)
-VALUES 
-(1, 1, 5),
-(2, 2, 4);
+(1, 1, 'Try using GPU instancing to reduce draw calls.', 1),
+(1, 2, 'Sketch each major scene before animating to save time.', 1);
 GO
