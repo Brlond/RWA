@@ -2,6 +2,7 @@
 <p>DEBUG ID: @Model.Id</p>
 @{
     ViewData["Title"] = "Details";
+    string username = ViewContext.HttpContext.User.Identity.Name;
 }
 
 <h1>Details</h1>
@@ -39,7 +40,6 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" id="userId" value="@Model.Id" />
                     <div class="mb-3">
                         <label for="firstName" class="form-label">First Name</label>
                         <input type="text" class="form-control" id="firstName" value="@Model.FirstName">
@@ -65,13 +65,12 @@
 
 @section Scripts {
     <script>
-        var editurl = "http://localhost:8080/api/User/Edit/@Model.Id"
+        var editurl = "http://localhost:8080/api/User/Edit/@username"
 
                $("#editUserForm").on("submit", function (e) {
                    e.preventDefault(); // 🛑 stops form from submitting normally
 
                    var data = {
-                       Id: $("#userId").val(),
                        FirstName: $("#firstName").val(),
                        LastName: $("#lastName").val(),
                        Email: $("#email").val()

@@ -101,16 +101,16 @@ namespace WebAPI.Controllers
 
 
 
-        [HttpPut("[action]/{id}")]
-        public ActionResult<UserLoginDTO> Edit(int id, [FromBody] UserEditDTO login)
+        [HttpPut("[action]/{username}")]
+        public ActionResult<UserLoginDTO> Edit(string username, [FromBody] UserEditDTO login)
         {
 
             try
             {
-                var user = _context.Users.FirstOrDefault(x => x.Id == id);
+                var user = _context.Users.FirstOrDefault(x => x.Username.ToLower() == username.ToLower());
                 if (user is null)
                 {
-                    _logger.LogError("User Error in User/ChangePassword", $"User not found with id = {id}", 1);
+                    _logger.LogError("User Error in User/ChangePassword", $"User not found with username of = {username}", 1);
                     return NotFound();
                 }
                 user.FirstName = login.FirstName;

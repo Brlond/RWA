@@ -60,7 +60,7 @@ builder.Services.AddSwaggerGen(option =>
 
 
 builder.Services.AddDbContext<RwaContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionStrings:con")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("con")));
 
 var secureKey = builder.Configuration["JWT:SecureKey"];
 builder.Services
