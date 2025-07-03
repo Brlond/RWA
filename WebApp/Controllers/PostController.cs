@@ -127,7 +127,7 @@ namespace MVC.Controllers
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
 
-        public ActionResult Create(PostVM postvm)
+        public ActionResult Create(PostVM postvm,string action)
         {
             try
             {
@@ -145,7 +145,12 @@ namespace MVC.Controllers
                 _context.Posts.Add(post);
                 _context.SaveChanges();
 
-                return RedirectToAction(nameof(Index));
+                if (action == "Create")
+                {
+                    return RedirectToAction(nameof(Index));
+
+                }
+                return RedirectToAction("Create");
             }
             catch
             {

@@ -7,11 +7,10 @@
     <h2>🔥 Most Discussed Topics</h2>
     <div class="topics-grid">
         <div class="row">
-
             @foreach (var topic in ViewBag.TopTopics)
             {
-                <div class="cold-md-4">
-                    <div class="topic-card" style="border: 2px solid #ccc; border-radius: 8px; padding: 16px; margin: 12px 0;">
+                <div class="d-md-4">
+                    <div class="container h-100" style="border: 2px solid #ccc; border-radius: 8px; padding: 16px; margin: 12px 0;">
                         <h3>@topic.Title</h3>
                         <p>@topic.Description</p>
                         <a asp-controller="Topic" asp-action="Details" class="btn btn-sm btn-outline-primary" asp-route-id="@topic.Id">Go to Topic</a>
@@ -21,3 +20,31 @@
         </div>
     </div>
 </div>
+
+
+
+
+@* <div class="container-fluid">
+    <h2>🔥 Most Discussed Topics</h2>
+    <div class="row">
+        @foreach (var topic in ViewBag.TopTopics)
+        {
+            <div class="col h-100">
+                <div class="card">
+                    <h5 class="card-header">
+                    @topic.Title
+                </h5>
+                    <div class="card-body">
+                    <p class="card-text">
+                        @topic.Description
+                    </p>
+                </div>
+                    <div class="card-footer">
+                    <a asp-controller="Topic" asp-action="Details" class="btn btn-sm btn-outline-primary" asp-route-id="@topic.Id">Go to Topic</a>
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+</div>
+ *@

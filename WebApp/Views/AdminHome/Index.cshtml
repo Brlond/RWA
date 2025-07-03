@@ -1,8 +1,38 @@
 ﻿<h1>Admin Dashboard</h1>
-<ul>
-    <li><a href="/User">Manage Users</a></li>
-    <li><a href="/Post">Manage Posts</a></li>
-    <li><a href="/Category">Manage Categories</a></li>
-    <li><a href="/Topic">Manage Topics</a></li>
-    <li><a href="/Posts">Manage Posts</a></li>
-</ul>
+<div class="topics-preview">
+    <div class="container">
+       
+        <div class="row">
+            <div class="col ">
+                <div class="topic-card" style="border: 2px solid #ccc; border-radius: 8px; padding: 16px; margin: 12px 0;">
+                    <h5>Post</h5>
+                    <a asp-controller="Post" asp-action="Create" class="btn btn-sm btn-outline-primary">Create</a>
+                    <a asp-controller="Post" asp-action="Index" class="btn btn-sm btn-outline-primary">List</a>
+                </div>
+            </div>
+            <div class="col">
+                <div class="topic-card" style="border: 2px solid #ccc; border-radius: 8px; padding: 16px; margin: 12px 0;">
+                    <h5>Topic</h5>
+                    <a asp-controller="Topic" asp-action="Create" class="btn btn-sm btn-outline-primary">Create</a>
+                    <a asp-controller="Topic" asp-action="Index" class="btn btn-sm btn-outline-primary">List</a>
+                </div>
+            </div>
+       </div>
+        <div class="row">
+            <div class="col ">
+                <div class="topic-card" style="border: 2px solid #ccc; border-radius: 8px; padding: 16px; margin: 12px 0;">
+                    <h5>Tag</h5>
+                    <a asp-controller="Tag" asp-action="Create" class="btn btn-sm btn-outline-primary">Create</a>
+                    <a asp-controller="Tag" asp-action="Index" class="btn btn-sm btn-outline-primary">List</a>
+                </div>
+            </div>
+            <div class="col">
+                <div class="topic-card" style="border: 2px solid #ccc; border-radius: 8px; padding: 16px; margin: 12px 0;">
+                    <h5>Category</h5>
+                    <a asp-controller="Category" asp-action="Create" class="btn btn-sm btn-outline-primary">Create</a>
+                    <a asp-controller="Category" asp-action="Index" class="btn btn-sm btn-outline-primary">List</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -44,7 +44,7 @@ namespace MVC.Controllers
         // POST: TagController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(TagVM tagvm)
+        public ActionResult Create(TagVM tagvm,string action)
         {
             try
             {
@@ -59,7 +59,14 @@ namespace MVC.Controllers
                 _context.Tags.Add(genre);
                 _context.SaveChanges();
 
-                return RedirectToAction(nameof(Index));
+
+                if (action == "Create")
+                {
+                    return RedirectToAction(nameof(Index));
+                    
+                }
+                return RedirectToAction("Create");
+
             }
             catch
             {

@@ -8,7 +8,7 @@
 <h1>List of Posts</h1>
 
     <p>
-        <a asp-action="Create">Create New</a>
+        <a class="btn btn-outline-primary" asp-action="Create">Create New</a>
     </p>
 
 <table class="table">
@@ -52,9 +52,9 @@
                     @Html.DisplayFor(modelItem => item.CreatorUsername)
                 </td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    <a asp-controller="Post" asp-action="Edit" class="btn btn-sm btn-outline-primary" asp-route-id="@item.Id">Edit</a>
+                    <a asp-controller="Post" asp-action="Details" class="btn btn-sm btn-outline-primary" asp-route-id="@item.Id">Details</a>
+                    <a asp-controller="Post" asp-action="Delete" class="btn btn-sm btn-danger" asp-route-id="@item.Id">Delete</a>
                 </td>
             </tr>
         }

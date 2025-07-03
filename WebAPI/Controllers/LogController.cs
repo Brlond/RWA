@@ -51,6 +51,24 @@ namespace WebApp.Controllers
             }
         }
 
+
+
+        [HttpGet("[action]")]
+        [Authorize]
+        public ActionResult<List<LogDTO>> Count()
+        {
+            try
+            {
+                var count = _context.Logs.Count();
+                return Ok(count);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Error in Log/Count", e.Message, 5);
+                return StatusCode(StatusCodes.Status500InternalServerError, "There has been a problem while fetching the data you requested");
+            }
+        }
+
         [HttpGet("[action]")]
         [Authorize]
         public ActionResult<PagedResult<LogDTO>> GetSome(int pageNumber, int pageSize)

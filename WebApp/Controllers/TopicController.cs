@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using MVC.ViewModels;
 using NuGet.Packaging;
 using NuGet.Protocol;
+using System;
 using WebApp.DTO;
 
 namespace MVC.Controllers
@@ -242,7 +243,7 @@ namespace MVC.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public ActionResult Create(TopicVM topic)
+        public ActionResult Create(TopicVM topic,string action)
         {
             try
             {
@@ -270,7 +271,13 @@ namespace MVC.Controllers
                 _context.Topics.Add(dbtopic);
                 _context.SaveChanges();
 
-                return RedirectToAction(nameof(Index));
+                if (action == "Create")
+                {
+                    return RedirectToAction(nameof(Index));
+                    
+                }
+                return RedirectToAction("Create");
+
             }
             catch
             {

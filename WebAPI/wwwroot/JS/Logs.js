@@ -5,6 +5,7 @@ let logsurl = "http://localhost:8080/api/Log/GetSome";
 
 function fillLogs(page = 1, size = 10) {
     let jwt = localStorage.getItem("JWT");
+    console.log(jwt);
     currentPage = page;
     pageSize = size;
 
@@ -19,6 +20,7 @@ function fillLogs(page = 1, size = 10) {
 
     }).fail(function () {
         console.error("There was an error while trying to load your data");
+        window.location.href = "Login.html";
     });
 }
 
@@ -60,11 +62,13 @@ function drawPagination(totalPages) {
         fillLogs(selectedPage, pageSize);
     });
 }
-$(document).ready(() => {
+    $(document).ready(() => {
     $("#itemCount").change(function () {
         const newSize = parseInt($(this).val());
         fillLogs(1, newSize);
     });
-    console.log(localStorage);
+        console.log(localStorage);
+        let jwt = localStorage.getItem("JWT");
+        console.log(jwt);
     fillLogs();
 });                     

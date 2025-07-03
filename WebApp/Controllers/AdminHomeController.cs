@@ -10,11 +10,5 @@ namespace WebApp.Controllers
         {
             return View();
         }
-
-
-        public ActionResult Creation()
-        {
-            return View();
-        }
     }
 }

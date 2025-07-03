@@ -110,10 +110,20 @@ VALUES ('2D'), ('3D'), ('Tips'), ('Mobile'), ('Desktop'), ('Unity'), ('Unreal'),
 GO
 
 -- Insert Topics
-INSERT INTO Topic (Title, Description, CategoryId)
-VALUES 
+INSERT INTO Topic (Title, Description, CategoryId) VALUES
 ('Optimizing performance for mobile devices', 'Best practices to enhance performance on smartphones.', 2),
-('Effective storyboarding for 2D adventure games', 'How to create a compelling story flow.', 1);
+('Effective storyboarding for 2D adventure games', 'How to create a compelling story flow.', 1),
+('Memory management in open-world games', 'Avoid crashes and improve load times with memory pools.', 2),
+('Designing intuitive game UI', 'Make interfaces accessible and user-friendly.', 1),
+('Using particle systems efficiently', 'Add visual effects without killing performance.', 2),
+('Narrative branching with decision trees', 'How to build a story that reacts to players.', 1),
+('Multiplayer lobby design', 'Create reliable matchmaking and room systems.', 3),
+('Balancing game difficulty', 'Keep your players challenged but not frustrated.', 1),
+('Procedural generation in indie games', 'Techniques to create content automatically.', 3),
+('Audio layering for immersive soundscapes', 'Combine ambient, SFX, and music like a pro.', 2),
+('Handling input across platforms', 'Support keyboard, controller, and touch input.', 2),
+('Reward systems that retain players', 'Gamification techniques that actually work.', 3),
+('Boss fight mechanics design', 'Make epic, memorable and fair boss encounters.', 1);
 GO
 
 -- Insert TopicTag links
@@ -129,3 +139,54 @@ VALUES
 (1, 1, 'Try using GPU instancing to reduce draw calls.', 1),
 (1, 2, 'Sketch each major scene before animating to save time.', 1);
 GO
+INSERT INTO [dbo].[Logs] ([DateOf], [Severity], [Message], [ErrorText]) VALUES
+(GETDATE(), 1, 'System started.', 'Usererror'),
+(GETDATE(), 2, 'User login failed.', 'Usererror'),
+(GETDATE(), 3, 'Database timeout.', 'Error'),
+(GETDATE(), 1, 'Health check passed.', 'Usererror'),
+(GETDATE(), 4, 'Unhandled exception.', 'Error'),
+(GETDATE(), 2, 'User logout.', 'Usererror'),
+(GETDATE(), 3, 'Service unavailable.', 'Error'),
+(GETDATE(), 1, 'Cache cleared.', 'Usererror'),
+(GETDATE(), 4, 'Disk space low.', 'Error'),
+(GETDATE(), 2, 'Email sent.', 'Usererror'),
+(GETDATE(), 1, 'Task completed.', 'Usererror'),
+(GETDATE(), 3, 'Deadlock detected.', 'Error'),
+(GETDATE(), 2, 'Permission denied.', 'Usererror'),
+(GETDATE(), 1, 'Session started.', 'Usererror'),
+(GETDATE(), 4, 'Data corruption detected.', 'Error'),
+(GETDATE(), 3, 'Transaction aborted.', 'Error'),
+(GETDATE(), 2, 'Invalid input.', 'Usererror'),
+(GETDATE(), 1, 'Configuration loaded.', 'Usererror'),
+(GETDATE(), 4, 'Out of memory.', 'Error'),
+(GETDATE(), 3, 'Timeout contacting server.', 'Error'),
+(GETDATE(), 2, 'Password reset requested.', 'Usererror'),
+(GETDATE(), 1, 'New user registered.', 'Usererror'),
+(GETDATE(), 3, 'Thread limit exceeded.', 'Error'),
+(GETDATE(), 4, 'Stack overflow.', 'Error'),
+(GETDATE(), 2, 'Token expired.', 'Usererror'),
+(GETDATE(), 1, 'Language set to EN.', 'Usererror'),
+(GETDATE(), 3, 'Connection pool exhausted.', 'Error'),
+(GETDATE(), 2, 'Access revoked.', 'Usererror'),
+(GETDATE(), 4, 'Kernel panic.', 'Error'),
+(GETDATE(), 3, 'File lock timeout.', 'Error'),
+(GETDATE(), 2, 'Too many requests.', 'Usererror'),
+(GETDATE(), 1, 'Daily report generated.', 'Usererror'),
+(GETDATE(), 4, 'Corrupted metadata.', 'Error'),
+(GETDATE(), 3, 'SSL handshake failed.', 'Error'),
+(GETDATE(), 2, 'Captcha failed.', 'Usererror'),
+(GETDATE(), 1, 'System idle.', 'Usererror'),
+(GETDATE(), 3, 'Replication lag detected.', 'Error'),
+(GETDATE(), 4, 'Memory leak.', 'Error'),
+(GETDATE(), 2, 'Form submission error.', 'Usererror'),
+(GETDATE(), 1, 'Locale updated.', 'Usererror'),
+(GETDATE(), 3, 'Queue overflow.', 'Error'),
+(GETDATE(), 4, 'Segmentation fault.', 'Error'),
+(GETDATE(), 2, 'Invalid email format.', 'Usererror'),
+(GETDATE(), 1, 'Widget loaded.', 'Usererror'),
+(GETDATE(), 3, 'File not found.', 'Error'),
+(GETDATE(), 2, 'Missing fields.', 'Usererror'),
+(GETDATE(), 4, 'Infinite loop detected.', 'Error'),
+(GETDATE(), 3, 'Unexpected shutdown.', 'Error'),
+(GETDATE(), 2, 'Unverified email.', 'Usererror'),
+(GETDATE(), 1, 'Restart completed.', 'Usererror');

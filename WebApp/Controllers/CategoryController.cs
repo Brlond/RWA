@@ -53,7 +53,7 @@ namespace MVC.Controllers
         // POST: CategoryController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(CategoryVM categoryVm)
+        public ActionResult Create(CategoryVM categoryVm,string action)
         {
             try
             {
@@ -69,7 +69,12 @@ namespace MVC.Controllers
                 _context.Categories.Add(category);
                 _context.SaveChanges();
 
-                return RedirectToAction(nameof(Index));
+                if (action == "Create")
+                {
+                    return RedirectToAction(nameof(Index));
+
+                }
+                return RedirectToAction("Create");
             }
             catch
             {

@@ -50,13 +50,13 @@
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
+    <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
     @if (!isadmin)
     {
-        <a asp-area="" asp-controller="Post" asp-action="GetByUsersString" asp-route-username="@username">Back to List</a>
+        <a asp-area="" class="btn btn-outline-primary" asp-controller="Post" asp-action="GetByUsersString" asp-route-username="@username">Back to List</a>
     }
     else
     {
-        <a asp-action="Index">Back to List</a>
+        <a class="btn btn-outline-primary" asp-action="Index">Back to List</a>
     }
 </div>

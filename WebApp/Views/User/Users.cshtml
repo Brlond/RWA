@@ -39,7 +39,7 @@
                     @Html.DisplayFor(modelItem => item.PostCount)
                 </td>
                 <td>
-                    <a asp-controller="Post" asp-action="GetByUsers" asp-route-id="@item.UserId">Posts</a>
+                    <a class="btn btn-sm btn-outline-primary" asp-controller="Post" asp-action="GetByUsers" asp-route-id="@item.UserId">Posts</a>
                 </td>
             </tr>
         }

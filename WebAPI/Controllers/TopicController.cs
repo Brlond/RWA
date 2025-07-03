@@ -61,11 +61,11 @@ namespace WebAPI.Controllers
 
         [HttpGet("[action]")]
         [Authorize]
-        public ActionResult<IEnumerable<TopicView>> Search(string searchPart)
+        public ActionResult<IEnumerable<TopicView>> Search(string searchPart, int pageNumber = 1, int pageSize = 10)
         {
             try
             {
-                var dbtopics = _context.Topics.Include(t => t.Tags).Include(t => t.Category).Include(t => t.Posts).ThenInclude(x => x.User).Where(x => x.Title.Contains(searchPart));
+                var dbtopics = _context.Topics.Include(t => t.Tags).Include(t => t.Category).Include(t => t.Posts).ThenInclude(x => x.User).Skip((pageNumber - 1) * pageSize).Take(pageSize).Where(x => x.Title.Contains(searchPart));
                 List<TopicView> topics = new List<TopicView>();
                 foreach (var item in dbtopics)
                 {
@@ -100,10 +100,10 @@ namespace WebAPI.Controllers
             try
             {
                 var dbTopic = _context.Topics.Include(t => t.Tags).Include(t => t.Category).Include(t => t.Posts).ThenInclude(x => x.User).FirstOrDefault(x => x.Id == id); ;
-                if (dbTopic is null) 
+                if (dbTopic is null)
                 {
                     _logger.LogError("User Error in Topic/Get", $"User tried to get topic of id={id}", 1);
-                    return NotFound(); 
+                    return NotFound();
                 }
                 var view = new TopicView()
                 {
@@ -180,7 +180,7 @@ namespace WebAPI.Controllers
         {
             try
             {
-                if (_context.Categories.Any(x => x.Name== topic.Title))
+                if (_context.Categories.Any(x => x.Name == topic.Title))
                 {
                     _logger.LogError("User Error in Topic/Post", $"User tried to insert duplicate Topic", 1);
                     return BadRequest();

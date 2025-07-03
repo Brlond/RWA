@@ -7,7 +7,7 @@
 <h1>Tags</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a class="btn btn-outline-primary" asp-action="Create">Create New</a>
 </p>
 <table class="table">
     <thead>
@@ -32,9 +32,9 @@
                     @Html.DisplayFor(modelItem => item.TopicCount)
                 </td>
                 <td>
-                    @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
-                    @Html.ActionLink("Details", "Details", new { id = item.Id }) |
-                    @Html.ActionLink("Delete", "Delete", new { id = item.Id })
+                    <a asp-controller="Tag" asp-action="Edit" class="btn btn-sm btn-outline-primary" asp-route-id="@item.Id">Edit</a>
+                    <a asp-controller="Tag" asp-action="Details" class="btn btn-sm btn-outline-primary" asp-route-id="@item.Id">Details</a>
+                    <a asp-controller="Tag" asp-action="Delete" class="btn btn-sm btn-danger" asp-route-id="@item.Id">Delete</a>
                 </td>
             </tr>
         }
