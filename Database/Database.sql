@@ -95,7 +95,19 @@ CREATE TABLE Rating (
 GO
 -- Sample data
 -- Insert Categories
-INSERT INTO Category (Name) VALUES ('Design'), ('Programming'), ('Modeling'), ('Animation'), ('Sound'), ('Interactivity');
+INSERT INTO Category (Name) VALUES 
+('Design'), 
+('Programming'), 
+('Modeling'), 
+('Animation'), 
+('Sound'), 
+('Interactivity'),
+('AI'), 
+('Networking'), 
+('Scripting'), 
+('UI/UX'), 
+('Marketing'), 
+('Physics');
 GO
 
 -- Insert Users
@@ -106,7 +118,23 @@ GO
 
 -- Insert Tags
 INSERT INTO Tag (Name)
-VALUES ('2D'), ('3D'), ('Tips'), ('Mobile'), ('Desktop'), ('Unity'), ('Unreal'), ('Godot');
+VALUES 
+('2D'), 
+('3D'), 
+('Tips'), 
+('Mobile'), 
+('Desktop'), 
+('Unity'), 
+('Unreal'), 
+('Godot'),
+('VR'), 
+('AR'), 
+('AI'), 
+('Multiplayer'), 
+('Shaders'), 
+('C#'), 
+('Blueprints'), 
+('Python');
 GO
 
 -- Insert Topics
@@ -123,14 +151,30 @@ INSERT INTO Topic (Title, Description, CategoryId) VALUES
 ('Audio layering for immersive soundscapes', 'Combine ambient, SFX, and music like a pro.', 2),
 ('Handling input across platforms', 'Support keyboard, controller, and touch input.', 2),
 ('Reward systems that retain players', 'Gamification techniques that actually work.', 3),
-('Boss fight mechanics design', 'Make epic, memorable and fair boss encounters.', 1);
+('Boss fight mechanics design', 'Make epic, memorable and fair boss encounters.', 1),
+('Dynamic lighting with shaders', 'Use shaders for real-time dynamic lighting in Unity and Unreal.', 2),
+('Intro to AI pathfinding', 'Learn the basics of A* and navmeshes.', 7),
+('Custom physics for 2D platformers', 'When Unity physics won’t cut it.', 12),
+('Using Python in game tools', 'Automate asset pipelines and data tweaking.', 9),
+('Multiplayer netcode fundamentals', 'Sync player data and reduce lag.', 8),
+('Visual scripting with Blueprints', 'A guide to Unreal’s visual scripting.', 2),
+('Creating immersive VR experiences', 'Design principles unique to virtual reality.', 1),
+('Optimizing animations for mobile', 'Reduce rig complexity and memory usage.', 4);
 GO
 
 -- Insert TopicTag links
 INSERT INTO TopicTag (TopicId, TagId)
 VALUES 
 (1, 4), (1, 6), 
-(2, 1), (2, 3);
+(2, 1), (2, 3),
+(14, 13), (14, 6),           
+(15, 11), (15, 9),           
+(16, 12), (16, 1),           
+(17, 16), (17, 8),           
+(18, 12), (18, 4),           
+(19, 15),                   
+(20, 9), (20, 13),          
+(21, 4), (21, 1);   
 GO
 
 -- Insert Posts
