@@ -1,3 +1,4 @@
+using AutoMapper;
 using Lib.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,10 +13,13 @@ namespace MVC.Controllers
     public class HomeController : Controller
     {
         private readonly RwaContext _context;
+        private readonly IMapper _mapper;
 
-        public HomeController(RwaContext context)
+
+        public HomeController(RwaContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public IActionResult Index()
@@ -25,19 +29,7 @@ namespace MVC.Controllers
                 .OrderByDescending(t => t.Posts.Count)
                 .Take(6)
                 .ToList();
-            var posts = topTopics.Select(x => new TopicVM
-            {
-                Id = x.Id,
-                Title = x.Title,
-                CategoryId = x.Category.Id,
-                CategoryName = x.Category.Name,
-                Description = x.Description,
-                PostsCount = x.Posts.Count,
-                Publish_Date = x.CreatedAt,
-                TagIds = x.Tags.Select(x => x.Id).ToList(),
-                TagNames = x.Tags.Select(x => x.Name).ToList()
-            });
-
+            var posts = _mapper.Map<List<TopicVM>>(topTopics);
             ViewBag.TopTopics = topTopics;
             return View();
         }

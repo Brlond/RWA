@@ -1,4 +1,5 @@
-﻿using Lib.Models;
+﻿using AutoMapper;
+using Lib.Models;
 using Lib.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,11 +14,14 @@ namespace WebAPI.Controllers
     {
         private readonly RwaContext _context;
         private readonly ILogService _logger;
+        private readonly IMapper _mapper;
 
-        public RatingController(RwaContext context, ILogService logger)
+
+        public RatingController(RwaContext context, ILogService logger, IMapper mapper)
         {
             _context = context;
             _logger = logger;
+            _mapper = mapper;
         }
 
         [HttpPost("[action]")]
@@ -60,8 +64,6 @@ namespace WebAPI.Controllers
                 _logger.LogError("Error in Topic/Post", e.Message, 5);
                 return StatusCode(StatusCodes.Status500InternalServerError, "There has been a problem while fetching the data you requested");
             }
-
-
 
         }
     }

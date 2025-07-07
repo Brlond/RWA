@@ -1,4 +1,5 @@
-﻿using Azure;
+﻿using AutoMapper;
+using Azure;
 using Lib.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -13,17 +14,20 @@ namespace MVC.Controllers
     [Authorize(Roles = "Admin")]
     public class TagController : Controller
     {
-        private readonly RwaContext _context;
+        private readonly RwaContext _context; 
+        private readonly IMapper _mapper;
 
-        public TagController(RwaContext context)
+
+        public TagController(RwaContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         // GET: TagController
         public ActionResult Index()
         {
-            var tags = _context.Tags.Select(x => new TagVM { Name = x.Name, Id = x.Id, TopicCount = x.Topics.Count, });
+            var tags = _context.Tags.Select(x => _mapper.Map<TagVM>(x));
             return View(tags);
         }
 
@@ -31,7 +35,7 @@ namespace MVC.Controllers
         public ActionResult Details(int id)
         {
             var dbtag = _context.Tags.Include(x=> x.Topics).FirstOrDefault(x => x.Id == id);
-            var tagvm = new TagVM { Id = dbtag.Id, Name = dbtag.Name , TopicCount = dbtag.Topics.Count, };
+            var tagvm = _mapper.Map<TagVM>(dbtag);
             return View(tagvm);
         }
 
@@ -50,12 +54,10 @@ namespace MVC.Controllers
             {
                 if (_context.Tags.Any(x=>x.Name==tagvm.Name))
                 {
-                    return BadRequest("Tag Already exists");
+                    ViewBag.ErrorMessage= "Tag with this name already exists.";
+                    return View("Create");
                 }
-                var genre = new Tag
-                {
-                    Name = tagvm.Name,
-                };
+                var genre = _mapper.Map<Tag>(tagvm);
                 _context.Tags.Add(genre);
                 _context.SaveChanges();
 
@@ -80,11 +82,7 @@ namespace MVC.Controllers
             try
             {
                 var dbtag = _context.Tags.FirstOrDefault(x => x.Id == id);
-                var tagVm = new TagVM
-                {
-                    Id = dbtag.Id,
-                    Name = dbtag.Name,
-                };
+                var tagVm = _mapper.Map<TagVM>(dbtag);
                 return View(tagVm);
             }
             catch (Exception e)
@@ -118,12 +116,7 @@ namespace MVC.Controllers
         public ActionResult Delete(int id)
         {
             var dbtag = _context.Tags.FirstOrDefault(x => x.Id == id);
-            var tag = new TagVM
-            {
-                Name = dbtag.Name,
-                Id = dbtag.Id,
-                TopicCount = dbtag.Topics.Count,
-            };
+            var tag = _mapper.Map<TagVM>(dbtag);
             return View(tag);
         }
 

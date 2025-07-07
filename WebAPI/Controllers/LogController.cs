@@ -1,4 +1,5 @@
-﻿using Lib.Models;
+﻿using AutoMapper;
+using Lib.Models;
 using Lib.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -13,11 +14,14 @@ namespace WebApp.Controllers
     {
         private readonly RwaContext _context;
         private readonly ILogService _logger;
+        private readonly IMapper _mapper;
 
-        public LogController(RwaContext context, ILogService logger)
+
+        public LogController(RwaContext context, ILogService logger, IMapper mapper)
         {
             _context = context;
             _logger = logger;
+            _mapper = mapper;
         }
 
 
@@ -30,18 +34,7 @@ namespace WebApp.Controllers
             try
             {
                 var logs = _context.Logs;
-                List<LogDTO> list = new List<LogDTO>();
-                foreach (Log item in logs)
-                {
-                    var log = new LogDTO()
-                    {
-                        ErrorText = item.ErrorText,
-                        Id = item.Id,
-                        Message = item.Message,
-                        Severity = item.Severity,
-                    };
-                    list.Add(log);
-                }
+                var list = _mapper.Map<List<LogDTO>>(logs);
                 return Ok(list);
             }
             catch (Exception e)
@@ -71,7 +64,7 @@ namespace WebApp.Controllers
 
         [HttpGet("[action]")]
         [Authorize]
-        public ActionResult<PagedResult<LogDTO>> GetSome(int pageNumber, int pageSize)
+        public ActionResult<PagedResult<LogDTO>> GetSome(int pageNumber = 1, int pageSize = 10)
         {
             try
             {
@@ -84,13 +77,7 @@ namespace WebApp.Controllers
                     .Take(pageSize)
                     .ToList();
 
-                var list = logs.Select(item => new LogDTO
-                {
-                    ErrorText = item.ErrorText,
-                    Id = item.Id,
-                    Message = item.Message,
-                    Severity = item.Severity,
-                }).ToList();
+                var list = _mapper.Map<List<LogDTO>>(logs);
 
                 var result = new PagedResult<LogDTO>
                 {
@@ -110,7 +97,7 @@ namespace WebApp.Controllers
 
 
         [HttpGet("{n}/{OrderBy}")]
-        public ActionResult<List<LogDTO>> Get(int n, int OrderBy)
+        public ActionResult<List<LogDTO>> Get(int n = 5, int OrderBy = 0)
         {
             try
             {
@@ -139,18 +126,7 @@ namespace WebApp.Controllers
                         logs = _context.Logs.ToList().OrderBy(x => x.Message).TakeLast(n);
                         break;
                 }
-                List<LogDTO> list = new List<LogDTO>();
-                foreach (Log item in logs)
-                {
-                    var log = new LogDTO()
-                    {
-                        ErrorText = item.ErrorText,
-                        Id = item.Id,
-                        Message = item.Message,
-                        Severity = item.Severity,
-                    };
-                    list.Add(log);
-                }
+                var list = _mapper.Map<List<LogDTO>>(logs);
                 return Ok(list);
             }
             catch (Exception e)
@@ -172,14 +148,8 @@ namespace WebApp.Controllers
                     _logger.LogError("Error in Log/Post", $"Modelstate isnt valid", 1);
                     return BadRequest(ModelState);
                 }
-                var dbLog = new Log()
-                {
-                    DateOf = DateTime.Now,
-                    ErrorText = log.ErrorText,
-                    Severity = log.Severity,
-                    Message = log.Message,
-                    Id = log.Id ?? 0
-                };
+                var dbLog = _mapper.Map<Log>(log);
+                dbLog.DateOf = DateTime.Now;
                 _context.Logs.Add(dbLog);
                 _context.SaveChanges();
 
@@ -203,20 +173,11 @@ namespace WebApp.Controllers
                     _logger.LogError("Error in Log/Post/many", $"Modelstate isnt valid", 1);
                     return BadRequest(ModelState);
                 }
-                foreach (LogDTO item in logs)
-                {
-                    var dbLog = new Log()
-                    {
-                        DateOf = DateTime.Now,
-                        ErrorText = item.ErrorText,
-                        Severity = item.Severity,
-                        Message = item.Message,
-                        Id = item.Id ?? 0
-                    };
-                    _context.Add(item);
-                    _context.SaveChanges();
-                    item.Id = dbLog.Id;
-                }
+                var dblogs = _mapper.Map<List<Log>>(logs);
+                dblogs.ForEach(x => x.DateOf = DateTime.Now);
+                _context.Logs.AddRange(dblogs);
+                _context.SaveChanges();
+                logs = _mapper.Map<LogDTO[]>(dblogs);
                 return Ok(logs);
             }
             catch (Exception e)
@@ -227,7 +188,7 @@ namespace WebApp.Controllers
         }
 
         [HttpDelete("{n}")]
-        public ActionResult<LogDTO> Delete(int n) 
+        public ActionResult<LogDTO> Delete(int n)
         {
             try
             {

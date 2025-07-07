@@ -1,4 +1,5 @@
-﻿using Lib.Models;
+﻿using AutoMapper;
+using Lib.Models;
 using Lib.Services;
 using Lib.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
+using WebAPI.Controllers;
 using WebApp.DTO;
 
 namespace WebApp.Controllers
@@ -16,12 +18,14 @@ namespace WebApp.Controllers
     public class PostController : ControllerBase
     {
         private readonly RwaContext _context;
-
         private readonly ILogService _logger;
-        public PostController(RwaContext context, ILogService logger)
+        private readonly IMapper _mapper;
+
+        public PostController(RwaContext context, ILogService logger, IMapper mapper)
         {
             _context = context;
             _logger = logger;
+            _mapper = mapper;
         }
 
         [HttpGet("[action]")]
@@ -34,17 +38,7 @@ namespace WebApp.Controllers
                 List<PostView> posts = new List<PostView>();
                 foreach (var post in dbposts)
                 {
-                    var postview = new PostView
-                    {
-                        Id = post.Id,
-                        Content = post.Content,
-                        TopicTitle = post.Topic.Title,
-                        Scores = post.Ratings.Select(r => (int)r.Score).ToList(),
-                        Username = post.User.Username,
-                        Approved = post.Approved.Value,
-                        PostedAt = post.PostedAt.Value,
-
-                    };
+                    var postview = _mapper.Map<PostView>(post);
                     posts.Add(postview);
                 }
 
@@ -62,27 +56,12 @@ namespace WebApp.Controllers
 
         [HttpGet("[action]")]
         [Authorize]
-        public ActionResult<IEnumerable<PostView>> Search(string searchPart)
+        public ActionResult<IEnumerable<PostView>> Search(string searchPart, int pageNumber = 1, int pageSize = 10)
         {
             try
             {
-                var dbposts = _context.Posts.Include(x=>x.Topic).Include(x=>x.User).Include(x=>x.Ratings).Where(x => x.Content.Contains(searchPart));
-                List<PostView> posts = new List<PostView>();
-                foreach (var post in dbposts)
-                {
-                    var postview = new PostView
-                    {
-                        Id = post.Id,
-                        Content = post.Content,
-                        TopicTitle = post.Topic.Title,
-                        Scores = post.Ratings.Select(r => (int)r.Score).ToList(),
-                        Username = post.User.Username,
-                        Approved = post.Approved.Value,
-                        PostedAt = post.PostedAt.Value,
-
-                    };
-                    posts.Add(postview);
-                }
+                var dbposts = _context.Posts.Include(x => x.Topic).Include(x => x.User).Include(x => x.Ratings).Skip((pageNumber - 1) * pageSize).Take(pageSize).Where(x => x.Content.Contains(searchPart));
+                var posts = _mapper.Map<List<PostView>>(dbposts);
 
                 return Ok(posts);
             }
@@ -106,16 +85,7 @@ namespace WebApp.Controllers
                     return NotFound();
                 }
 
-                var post = new PostView
-                {
-                    Id = dbpost.Id,
-                    Content = dbpost.Content,
-                    TopicTitle = dbpost.Topic.Title,
-                    Username = dbpost.User.Username,
-                    Scores = dbpost.Ratings.Select(r => (int)r.Score).ToList(),
-                    Approved = dbpost.Approved.Value,
-                    PostedAt = dbpost.PostedAt.Value,
-                };
+                var post = _mapper.Map<PostView>(dbpost);
 
                 return Ok(post);
 
@@ -142,13 +112,12 @@ namespace WebApp.Controllers
                 }
 
                 var dbPost = _context.Posts.Include(x => x.Topic).Include(x => x.User).Include(x => x.Ratings).FirstOrDefault(x => x.Id == id);
-
-                if (dbPost is null)
+                var topic = _context.Topics.FirstOrDefault(x => x.Id == post.TopicId);
+                if (dbPost is null || topic is null)
                 {
                     _logger.LogError("User Error in Post/Put", $"User tried to put post of id = {id}", 1);
                     return NotFound();
                 }
-
 
                 dbPost.Content = post.Content;
                 dbPost.TopicId = post.TopicId;
@@ -179,16 +148,7 @@ namespace WebApp.Controllers
 
 
                 var scores = dbPost.Ratings.Select(x => x.Score.Value);
-                var postview = new PostView
-                {
-                    Id = dbPost.Id,
-                    Content = dbPost.Content,
-                    TopicTitle = dbPost.Topic.Title,
-                    Username = dbPost.User.Username,
-                    Scores = dbPost.Ratings.Select(r => (int)r.Score).ToList(),
-                    Approved = dbPost.Approved.Value,
-                    PostedAt = dbPost.PostedAt.Value,
-                };
+                var postview = _mapper.Map<PostView>(dbPost);
                 return Ok(post);
 
             }
@@ -214,17 +174,7 @@ namespace WebApp.Controllers
                 }
                 var dbuser = _context.Users.FirstOrDefault(x => x.Id == post.UserId);
                 var dbtopic = _context.Topics.FirstOrDefault(x => x.Id == post.TopicId);
-                var dbpost = new Post
-                {
-                    UserId = post.UserId,
-                    Content = post.Content,
-                    TopicId = post.TopicId,
-                    User = dbuser,
-                    Topic = dbtopic,
-                };
-                //var ratings = _context.Ratings.Where(x => x.Score.HasValue && post.Scores.Contains(x.Score.Value));
-                //dbpost.Ratings = ratings.Select(x => new Rating { Score = x.Score }).ToList();
-
+                var dbpost = _mapper.Map<Post>(post);
                 _context.Posts.Add(dbpost);
                 _context.SaveChanges();
                 post.Id = dbpost.Id;
@@ -252,19 +202,11 @@ namespace WebApp.Controllers
                     return NotFound();
                 }
 
-                var scores = dbPost.Ratings.Select(x => x.Score.Value);
-                var ratings = _context.Ratings.Select(x => x.PostId == id);
-                var post = new PostDTO
-                {
-                    Content = dbPost.Content,
-                    Id = dbPost.Id,
-                    Scores = (List<int>)scores,
-                    TopicId = (int)dbPost.TopicId,
-                    UserId = (int)dbPost.UserId
-                };
+                var ratings = _context.Ratings.Where(x => x.PostId == id);
+                var post = _mapper.Map<PostDTO>(dbPost);
                 foreach (var rating in ratings)
                 {
-                    _context.Remove(rating);
+                    _context.Ratings.Remove(rating);
                 }
 
                 _context.Posts.Remove(dbPost);

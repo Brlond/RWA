@@ -1,4 +1,5 @@
-﻿using Lib.Models;
+﻿using AutoMapper;
+using Lib.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,21 +13,19 @@ namespace MVC.Controllers
     public class CategoryController : Controller
     {
         private readonly RwaContext _context;
+        private readonly IMapper _mapper;
 
-        public CategoryController(RwaContext context)
+
+        public CategoryController(RwaContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         // GET: CategoryController
         public ActionResult Index()
         {
-            var categories = _context.Categories.Select(x=> new CategoryVM
-            {
-                Name = x.Name,
-                Id = x.Id,
-                TopicCount = x.Topics.Count,
-            }).ToList();
+            var categories = _context.Categories.Select(x=> _mapper.Map<CategoryVM>(x)).ToList();
             return View(categories);
         }
 
@@ -34,12 +33,7 @@ namespace MVC.Controllers
         public ActionResult Details(int id)
         {
             var dbcategory = _context.Categories.Include(x=>x.Topics).FirstOrDefault(x => x.Id == id);
-            var categoryvm = new CategoryVM
-            {
-                Id = id,
-                Name = dbcategory.Name,
-                TopicCount = dbcategory.Topics.Count,
-            };
+            var categoryvm = _mapper.Map<CategoryVM>(dbcategory);
 
             return View(categoryvm);
         }
@@ -57,14 +51,11 @@ namespace MVC.Controllers
         {
             try
             {
-                var category = new Category
-                {
-                    Name = categoryVm.Name,
-                };
+                var category = _mapper.Map<Category>(categoryVm);
                 if (_context.Categories.Any(x => x.Name == categoryVm.Name))
                 {
-                    
-                    return BadRequest(); 
+                    ViewBag.ErrorMessage = "Category with this name already exists.";
+                    return View("Create"); 
                 }
                 _context.Categories.Add(category);
                 _context.SaveChanges();
@@ -88,11 +79,7 @@ namespace MVC.Controllers
             try
             {
                 var dbcategory = _context.Categories.FirstOrDefault(x => x.Id == id);
-                var category = new CategoryVM
-                {
-                    Id = dbcategory.Id,
-                    Name = dbcategory.Name,
-                };
+                var category = _mapper.Map<CategoryVM>(dbcategory);
                 return View(category);
             }
             catch (Exception)
@@ -128,11 +115,7 @@ namespace MVC.Controllers
             try
             {
                 var dbcategory = _context.Categories.FirstOrDefault(x => x.Id == id);
-                var category = new CategoryVM
-                {
-                    Id = dbcategory.Id,
-                    Name = dbcategory.Name,
-                };
+                var category = _mapper.Map<CategoryVM>(dbcategory); 
                 return View(category);
             }
             catch 

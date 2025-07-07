@@ -1,4 +1,5 @@
-﻿using Lib.Models;
+﻿using AutoMapper;
+using Lib.Models;
 using Lib.Services;
 using Lib.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -14,13 +15,15 @@ namespace WebAPI.Controllers
     public class TagController : ControllerBase
     {
         private readonly RwaContext _context;
-
         private readonly ILogService _logger;
+        private readonly IMapper _mapper;
 
-        public TagController(RwaContext context, ILogService logger)
+
+        public TagController(RwaContext context, ILogService logger, IMapper mapper)
         {
             _context = context;
             _logger = logger;
+            _mapper = mapper;
         }
 
         [HttpGet("[action]")]
@@ -30,18 +33,7 @@ namespace WebAPI.Controllers
             try
             {
                 var dbtags = _context.Tags.ToList();
-                List<TagView> result = new List<TagView>();
-                foreach (var tag in dbtags)
-                {
-                    var tagview = new TagView
-                    {
-                        Id = tag.Id,
-                        Name = tag.Name,
-                        TopicTitles = tag.Topics.Select(x => x.Title).ToList(),
-                    };
-                    result.Add(tagview);
-                }
-
+                List<TagView> result = _mapper.Map<List<TagView>>(dbtags);
                 return Ok(result);
             }
             catch (Exception e)
@@ -54,23 +46,13 @@ namespace WebAPI.Controllers
 
         [HttpGet("[action]")]
         [Authorize]
-        public ActionResult<IEnumerable<TagView>> Search(string searchPart)
+        public ActionResult<IEnumerable<TagView>> Search(string searchPart, int pageNumber = 1, int pageSize = 10)
         {
             try
             {
-                var dbtags = _context.Tags.Where(x => x.Name.Contains(searchPart));
+                var dbtags = _context.Tags.Skip((pageNumber - 1) * pageSize).Take(pageSize).Where(x => x.Name.Contains(searchPart));
 
-                List<TagView> tags = new List<TagView>();
-                foreach (var tag in dbtags)
-                {
-                    var tagview = new TagView
-                    {
-                        Id = tag.Id,
-                        Name = tag.Name,
-                        TopicTitles = tag.Topics.Select(x => x.Title).ToList(),
-                    };
-                    tags.Add(tagview);
-                }
+                List<TagView> tags = _mapper.Map<List<TagView>>(dbtags);
 
                 return Ok(tags);
             }
@@ -94,12 +76,7 @@ namespace WebAPI.Controllers
                     return NotFound();
                 }
 
-                var tag = new TagView
-                {
-                    Id = dbTag.Id,
-                    Name = dbTag.Name,
-                    TopicTitles = dbTag.Topics.Select(x => x.Title).ToList(),
-                };
+                var tag = _mapper.Map<TagView>(dbTag);
 
                 return Ok(tag);
             }
@@ -165,10 +142,7 @@ namespace WebAPI.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var dbTag = new Tag
-                {
-                    Name = tag.Name,
-                };
+                var dbTag = _mapper.Map<Tag>(tag);
                 _context.Tags.Add(dbTag);
 
                 _context.SaveChanges();
@@ -203,11 +177,7 @@ namespace WebAPI.Controllers
 
                 _context.Tags.Remove(dbTag);
                 _context.SaveChanges();
-                var tag = new TagDTO
-                {
-                    Id = dbTag.Id,
-                    Name = dbTag.Name,
-                };
+                var tag = _mapper.Map<TagDTO>(dbTag);
 
                 return Ok(tag);
             }

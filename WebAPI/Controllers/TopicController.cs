@@ -1,4 +1,5 @@
-﻿using Lib.Models;
+﻿using AutoMapper;
+using Lib.Models;
 using Lib.Services;
 using Lib.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -17,12 +18,14 @@ namespace WebAPI.Controllers
     {
 
         private readonly RwaContext _context;
-
         private readonly ILogService _logger;
-        public TopicController(RwaContext context, ILogService logService)
+        private readonly IMapper _mapper;
+
+        public TopicController(RwaContext context, ILogService logService, IMapper mapper)
         {
             _context = context;
             _logger = logService;
+            _mapper = mapper;
         }
 
 
@@ -34,21 +37,7 @@ namespace WebAPI.Controllers
             try
             {
                 var dbtopics = _context.Topics.Include(t => t.Tags).Include(t => t.Category).Include(t => t.Posts).ThenInclude(x => x.User);
-                List<TopicView> topics = new List<TopicView>();
-                foreach (var item in dbtopics)
-                {
-                    var view = new TopicView()
-                    {
-                        CategoryName = item.Category.Name,
-                        CreatedAt = item.CreatedAt.Value,
-                        Description = item.Description,
-                        Id = item.Id,
-                        Posts = item.Posts.Select(x => new PostPreview() { Id = x.Id, Content = x.Content, PostedAt = x.PostedAt.Value, Username = x.User.Username }).ToList(),
-                        TagNames = item.Tags.Select(x => x.Name).ToList(),
-                        Title = item.Title
-                    };
-                    topics.Add(view);
-                }
+                var topics = _mapper.Map<List<TopicView>>(dbtopics);    
                 return Ok(topics);
             }
             catch (Exception e)
@@ -66,22 +55,7 @@ namespace WebAPI.Controllers
             try
             {
                 var dbtopics = _context.Topics.Include(t => t.Tags).Include(t => t.Category).Include(t => t.Posts).ThenInclude(x => x.User).Skip((pageNumber - 1) * pageSize).Take(pageSize).Where(x => x.Title.Contains(searchPart));
-                List<TopicView> topics = new List<TopicView>();
-                foreach (var item in dbtopics)
-                {
-                    var view = new TopicView()
-                    {
-                        CategoryName = item.Category.Name,
-                        CreatedAt = item.CreatedAt.Value,
-                        Description = item.Description,
-                        Id = item.Id,
-                        Posts = item.Posts.Select(x => new PostPreview() { Id = x.Id, Content = x.Content, PostedAt = x.PostedAt.Value, Username = x.User.Username }).ToList(),
-                        TagNames = item.Tags.Select(x => x.Name).ToList(),
-                        Title = item.Title
-                    };
-                    topics.Add(view);
-                }
-
+                var topics = _mapper.Map<List<TopicView>>(dbtopics);
                 return Ok(topics);
             }
             catch (Exception e)
@@ -105,16 +79,7 @@ namespace WebAPI.Controllers
                     _logger.LogError("User Error in Topic/Get", $"User tried to get topic of id={id}", 1);
                     return NotFound();
                 }
-                var view = new TopicView()
-                {
-                    CategoryName = dbTopic.Category.Name,
-                    CreatedAt = dbTopic.CreatedAt.Value,
-                    Description = dbTopic.Description,
-                    Id = dbTopic.Id,
-                    Posts = dbTopic.Posts.Select(x => new PostPreview() { Id = x.Id, Content = x.Content, PostedAt = x.PostedAt.Value, Username = x.User.Username }).ToList(),
-                    TagNames = dbTopic.Tags.Select(x => x.Name).ToList(),
-                    Title = dbTopic.Title
-                };
+                var view = _mapper.Map<TopicView>(dbTopic);
 
                 return Ok(view);
             }
@@ -190,28 +155,8 @@ namespace WebAPI.Controllers
                     _logger.LogError("User Error in Topic/Post", $"Modelstate Isnt Valid", 1);
                     return BadRequest(ModelState);
                 }
-
-                var dbtags = _context.Tags;
-                List<Tag> tags = new List<Tag>();
-                foreach (var item in topic.TagIds)
-                {
-
-                    Tag bah = dbtags.FirstOrDefault(x => x.Id == item);
-                    if (bah is not null)
-                    {
-                        tags.Add(bah);
-                    }
-
-                }
-
-                var dbtopic = new Topic
-                {
-                    Title = topic.Title,
-                    Description = topic.Description,
-                    CategoryId = topic.CategoryId,
-                    Category = _context.Categories.FirstOrDefault(x => x.Id == topic.CategoryId),
-                    Tags = tags,
-                };
+               
+                var dbtopic = _mapper.Map<Topic>(topic);
                 _context.Topics.Add(dbtopic);
                 _context.SaveChanges();
 
@@ -230,23 +175,20 @@ namespace WebAPI.Controllers
         {
             try
             {
-                var dbtopic = _context.Topics.FirstOrDefault(x => x.Id == id);
+                var dbtopic = _context.Topics.Include(x=>x.Posts).FirstOrDefault(x => x.Id == id);
+                var dbratings = _context.Ratings.Where(r => _context.Posts.Any(p => p.Id == r.PostId && p.TopicId == id)).ToList();
+                var dbposts = _context.Posts.Where(x=>x.Topic.Id==id);
                 if (dbtopic is null)
                 {
                     _logger.LogError("User Error in Topic/Delete", $"User tried to delete topic of id={id}", 1);
                     return NotFound();
                 }
-
+                _context.Ratings.RemoveRange(dbratings);
+                _context.Posts.RemoveRange(dbposts);
                 _context.Topics.Remove(dbtopic);
                 _context.SaveChanges();
 
-                TopicDTO topic = new TopicDTO
-                {
-                    Title = dbtopic.Title,
-                    Description = dbtopic.Description,
-                    CategoryId = dbtopic.CategoryId,
-                    TagIds = dbtopic.Tags.Select(x => x.Id).ToList()
-                };
+                TopicDTO topic =_mapper.Map<TopicDTO>(dbtopic);
 
                 return Ok(topic);
             }

@@ -2,10 +2,12 @@ using Lib.Models;
 using Lib.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Text;
+using WebAPI.AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -76,6 +78,7 @@ builder.Services
     });
 
 builder.Services.AddScoped<ILogService, LogService>();
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
 var app = builder.Build();
 
 

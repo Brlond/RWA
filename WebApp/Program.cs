@@ -1,5 +1,7 @@
 using Lib.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using WebApp.AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,7 +31,7 @@ builder.Services.AddAuthentication().AddCookie(options =>
     options.SlidingExpiration = true;
     options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
 });
-
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
 
 var app = builder.Build();
 

@@ -1,4 +1,5 @@
-﻿using Lib.Models;
+﻿using AutoMapper;
+using Lib.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection.XmlEncryption;
 using Microsoft.AspNetCore.Http;
@@ -9,7 +10,6 @@ using MVC.ViewModels;
 using NuGet.Packaging;
 using NuGet.Protocol;
 using System;
-using WebApp.DTO;
 
 namespace MVC.Controllers
 {
@@ -19,11 +19,14 @@ namespace MVC.Controllers
 
         private readonly RwaContext _context;
         private readonly IConfiguration _configuration;
+        private readonly IMapper _mapper;
 
-        public TopicController(RwaContext context, IConfiguration configuration)
+
+        public TopicController(RwaContext context, IConfiguration configuration, IMapper mapper)
         {
             _context = context;
             _configuration = configuration;
+            _mapper = mapper;
         }
 
 
@@ -75,18 +78,7 @@ namespace MVC.Controllers
 
             topics = topics.Skip((searchVm.Page - 1) * searchVm.Size).Take(searchVm.Size);
 
-            List<TopicVM> topicVMs = topics.Select(x => new TopicVM
-            {
-                Id = x.Id,
-                TagIds = x.Tags.Select(x => x.Id).ToList(),
-                CategoryId = (int)x.CategoryId,
-                CategoryName = x.Category.Name,
-                Description = x.Description,
-                PostsCount = x.Posts.Count(),
-                Publish_Date = x.CreatedAt,
-                TagNames = x.Tags.Select(x => x.Name + " ").ToList(),
-                Title = x.Title,
-            }).ToList();
+            List<TopicVM> topicVMs = _mapper.Map<List<TopicVM>>(topics.ToList());
             searchVm.Topics = topicVMs;
             return View(searchVm);
         }
@@ -106,8 +98,8 @@ namespace MVC.Controllers
                 .Include(x => x.Tags).ThenInclude(x => x.Topics).FirstOrDefault(x => x.Id == id);
 
 
-            IQueryable<Post> postss = _context.Posts.Include(x => x.Ratings).Include(x => x.Topic).Include(x => x.User).Where(x=>x.TopicId==id);
-            
+            IQueryable<Post> postss = _context.Posts.Include(x => x.Ratings).Include(x => x.Topic).Include(x => x.User).Where(x => x.TopicId == id);
+
             if (postsearch.OrderBy is not null)
             {
                 switch (postsearch.OrderBy.ToLower())
@@ -145,30 +137,10 @@ namespace MVC.Controllers
 
             postss = postss.Skip((postsearch.Page - 1) * postsearch.Size).Take(postsearch.Size);
 
-            List<PostVM> postVMs = postss.Select(x=> new PostVM
-            {
-                Id = x.Id,
-                Content = x.Content,
-                CreatorUsername = x.User.Username,
-                Score = x.Ratings.Count > 0 ? (int)Math.Round((decimal)x.Ratings.Average(r => r.Score)) : 0,
-                TopicId = (int)x.TopicId,
-                TopicTitle = x.Topic.Title,
-                Published_Date = x.PostedAt,
-            }).ToList();
+            List<PostVM> postVMs = _mapper.Map<List<PostVM>>(postss.ToList());
 
             postsearch.Posts = postVMs;
-            postsearch.Topic = new TopicVM
-            {
-                Id = dbtopic.Id,
-                TagIds = dbtopic.Tags.Select(x => x.Id).ToList(),
-                CategoryId = (int)dbtopic.CategoryId,
-                CategoryName = dbtopic.Category.Name,
-                Description = dbtopic.Description,
-                PostsCount = dbtopic.Posts.Count(),
-                Publish_Date = dbtopic.CreatedAt,
-                TagNames = dbtopic.Tags.Select(x => x.Name + " ").ToList(),
-                Title = dbtopic.Title,
-            };
+            postsearch.Topic = _mapper.Map<TopicVM>(dbtopic);
 
             PostDTO postvm = new PostDTO
             {
@@ -243,13 +215,16 @@ namespace MVC.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public ActionResult Create(TopicVM topic,string action)
+        public ActionResult Create(TopicVM topic, string action)
         {
             try
             {
-                if (_context.Topics.Any(x=>x.Title==topic.Title))
+                if (_context.Topics.Any(x => x.Title == topic.Title))
                 {
-                    return BadRequest("Topic Already exists");
+                    ViewBag.ErrorMessage = "Topic with this title already exists.";
+                    ViewBag.Tags = GetTagsListItems();
+                    ViewBag.Categories = GetCatsListItems();
+                    return View("Create");
                 }
 
                 if (!ModelState.IsValid)
@@ -260,21 +235,14 @@ namespace MVC.Controllers
                     return View();
                 }
                 var tags = topic.TagIds.ToList();
-                var dbtopic = new Topic
-                {
-                    CategoryId = topic.CategoryId,
-                    Description = topic.Description,
-                    Title = topic.Title,
-                    Tags = _context.Tags.Where(t => topic.TagIds.Contains(t.Id)).ToList(),
-                    Category = _context.Categories.FirstOrDefault(x => x.Id == topic.CategoryId),
-                };
+                var dbtopic = _mapper.Map<Topic>(topic);
                 _context.Topics.Add(dbtopic);
                 _context.SaveChanges();
 
                 if (action == "Create")
                 {
                     return RedirectToAction(nameof(Index));
-                    
+
                 }
                 return RedirectToAction("Create");
 
@@ -297,18 +265,7 @@ namespace MVC.Controllers
 
             var tagids = dbtopic.Tags.Select(x => x.Id);
 
-            var topicvm = new TopicVM
-            {
-                Id = dbtopic.Id,
-                CategoryId = category.Id,
-                CategoryName = category.Name,
-                TagIds = tagids.ToList(),
-                Description = dbtopic.Description,
-                PostsCount = dbtopic.Posts.Count(),
-                Publish_Date = dbtopic.CreatedAt,
-                TagNames = dbtopic.Tags.Select(x => x.Name).ToList(),
-                Title = dbtopic.Title,
-            };
+            var topicvm = _mapper.Map<TopicVM>(dbtopic);
             return View(topicvm);
         }
 
@@ -348,18 +305,7 @@ namespace MVC.Controllers
 
             var tagids = dbtopic.Tags.Select(x => x.Id);
 
-            var topicvm = new TopicVM
-            {
-                Id = dbtopic.Id,
-                CategoryId = category.Id,
-                CategoryName = category.Name,
-                TagIds = tagids.ToList(),
-                Description = dbtopic.Description,
-                PostsCount = dbtopic.Posts.Count(),
-                Publish_Date = dbtopic.CreatedAt,
-                TagNames = dbtopic.Tags.Select(x => x.Name).ToList(),
-                Title = dbtopic.Title,
-            };
+            var topicvm = _mapper.Map<TopicVM>(dbtopic);
             return View(topicvm);
         }
 
@@ -382,5 +328,14 @@ namespace MVC.Controllers
                 return View();
             }
         }
+    }
+
+    internal class PostDTO
+    {
+        public int? Id { get; set; }
+        public int UserId { get; set; }
+        public int TopicId { get; set; }
+        public string Content { get; set; }
+        public List<int>? Scores { get; set; }
     }
 }

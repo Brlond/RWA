@@ -1,4 +1,5 @@
-﻿using Lib.Models;
+﻿using AutoMapper;
+using Lib.Models;
 using Lib.Security;
 using Lib.Services;
 using Microsoft.AspNetCore.Http;
@@ -13,16 +14,16 @@ namespace WebAPI.Controllers
     public class UserController : ControllerBase
     {
         private readonly RwaContext _context;
-
         private readonly ILogService _logger;
-
+        private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
 
-        public UserController(RwaContext context, ILogService logger, IConfiguration configuration)
+        public UserController(RwaContext context, ILogService logger, IConfiguration configuration, IMapper mapper)
         {
             _context = context;
             _logger = logger;
             _configuration = configuration;
+            _mapper = mapper;
         }
 
 

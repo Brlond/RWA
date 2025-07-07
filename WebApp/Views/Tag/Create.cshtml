@@ -5,9 +5,16 @@
 }
 
 <h1>Create</h1>
-
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+}
 <h4>Tag</h4>
 <hr />
+<div>
+    <a class="btn btn-outline-primary" asp-action="Index">Back to List  </a>
+</div>
+
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Create">
@@ -25,7 +32,4 @@
     </div>
 </div>
 
-<div>
-    <a class="btn btn-outline-primary" asp-action="Index">Back to List  </a>
-</div>
 

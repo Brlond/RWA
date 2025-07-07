@@ -1,4 +1,5 @@
-﻿using Lib.Models;
+﻿using AutoMapper;
+using Lib.Models;
 using Lib.Services;
 using Lib.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -15,13 +16,14 @@ namespace WebApp.Controllers
     public class CategoryController : ControllerBase
     {
         private readonly RwaContext _context;
-
         private readonly ILogService _logger;
+        private readonly IMapper _mapper;
 
-        public CategoryController(RwaContext context, ILogService logger)
+        public CategoryController(RwaContext context, ILogService logger, IMapper mapper)
         {
             _context = context;
             _logger = logger;
+            _mapper = mapper;
         }
 
         [HttpGet("[action]")]
@@ -29,20 +31,9 @@ namespace WebApp.Controllers
         {
             try
             {
-                var list = _context.Categories.Include(t => t.Topics).ToList();
-                List<CategoryView> lista = new List<CategoryView>();
-                foreach (var item in list) 
-                {
-                    var categoryDTO = new CategoryView()
-                    {
-                        Name = item.Name,
-                        TopicTitles = item.Topics.Select(t => t.Title).ToList(),
-                        Id=item.Id,
-                    };
-                    lista.Add(categoryDTO);
-
-                }
-                return Ok(lista);
+                var dbcategories = _context.Categories.Include(t => t.Topics).ToList();
+                var result = _mapper.Map<List<CategoryView>>(dbcategories);
+                return Ok(result);
             }
             catch (Exception e)
             {
@@ -62,12 +53,7 @@ namespace WebApp.Controllers
                     _logger.LogError("User Error in Category/Get", $"User tried to get category of id = {id}", 1);
                     return NotFound();
                 }
-                var category = new CategoryView()
-                {
-                    Id = dbCategory.Id,
-                    Name  = dbCategory.Name,
-                    TopicTitles = dbCategory.Topics.Select(x => x.Title).ToList(),
-                };
+                var category = _mapper.Map<CategoryView>(dbCategory);
 
                 return Ok(category);
             }
@@ -133,10 +119,7 @@ namespace WebApp.Controllers
                     _logger.LogError("User Error in Category/Post", $"Modelstate isnt valid", 1);
                     return BadRequest();
                 }
-                var dbCategory = new Category
-                {
-                    Name = category.Name,
-                };
+                var dbCategory = _mapper.Map<Category>(category);
 
 
                 var topics = _context.Topics.Where(x => x.Category.Name == category.Name);
@@ -144,14 +127,7 @@ namespace WebApp.Controllers
                 _context.Categories.Add(dbCategory);
                 _context.SaveChanges();
 
-                var catdto = new CategoryDTO()
-                {
-                    Name = category.Name,
-                    Id = category.Id,
-                };
-
-
-                return Ok(catdto);
+                return Ok(_mapper.Map<CategoryDTO>(dbCategory));
 
             }
             catch (Exception e)
@@ -178,11 +154,7 @@ namespace WebApp.Controllers
                 _context.Categories.Remove(dbcategory);
                 _context.SaveChanges();
 
-                return new CategoryDTO
-                {
-                    Id = dbcategory.Id,
-                    Name = dbcategory.Name,
-                };
+                return Ok(_mapper.Map<CategoryDTO>(dbcategory));
             }
             catch (Exception e)
             {
