@@ -277,20 +277,35 @@ namespace MVC.Controllers
         {
             try
             {
-                var dbtopic = _context.Topics.FirstOrDefault(x => x.Id == id);
-
+               
+                var dbtopic = _context.Topics.Include(x=>x.Posts).Include(x=>x.Tags).Include(x=>x.Category).FirstOrDefault(x => x.Id == id);
+                foreach (var tag in dbtopic.Tags.ToList())
+                {
+                    tag.Topics.Remove(dbtopic);
+                }
+                dbtopic.Tags.Clear();
+                _context.SaveChanges();
                 dbtopic.Title = topicVM.Title;
                 dbtopic.Description = topicVM.Description;
                 dbtopic.CategoryId = topicVM.CategoryId;
                 dbtopic.Category = _context.Categories.FirstOrDefault(x => x.Id == topicVM.CategoryId);
-                _context.RemoveRange(dbtopic.Tags);
-                dbtopic.Tags.AddRange(_context.Tags.Where(t => topicVM.TagIds.Contains(t.Id)).ToList());
+                var newTags = _context.Tags.Where(t => topicVM.TagIds.Contains(t.Id)).ToList();
+
+                foreach (var tag in newTags)
+                {
+                    dbtopic.Tags.Add(tag);
+                    tag.Topics.Add(dbtopic);
+                }
+
 
                 _context.SaveChanges();
+                
                 return RedirectToAction(nameof(Index));
             }
             catch
             {
+                ViewBag.Tags = GetTagsListItems();
+                ViewBag.Categories = GetCatsListItems();
                 return View();
             }
         }

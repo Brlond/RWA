@@ -35,7 +35,7 @@ namespace WebApp.AutoMapper
             CreateMap<Topic, TopicVM>()
                 .ForMember(dst => dst.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
                 .ForMember(dst => dst.TagIds, opt => opt.MapFrom(src => src.Tags.Select(t => t.Id).ToList()))
-                .ForMember(dst => dst.TagNames, opt => opt.MapFrom(src => src.Tags.Select(t => t.Name).ToList()))
+                .ForMember(dst => dst.TagNames, opt => opt.MapFrom(src => src.Tags.Select(t => t.Name+" ").ToList()))
                 .ForMember(dst => dst.PostsCount, opt => opt.MapFrom(src => src.Posts.Count))
                 .ForMember(dst => dst.Publish_Date, opt => opt.MapFrom(src => src.CreatedAt))
                 .ReverseMap()

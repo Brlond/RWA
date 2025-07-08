@@ -110,24 +110,27 @@ namespace WebAPI.Controllers
                     _logger.LogError("User Error in Topic/Put", $"User tried to put topic of id={id}", 1);
                     return NotFound();
                 }
-                var dbtags = _context.Tags;
-                List<Tag> tags = new List<Tag>();
-                foreach (var item in topic.TagIds)
+                foreach (var tag in dbTopic.Tags.ToList())
                 {
-
-                    Tag bah = dbtags.FirstOrDefault(x => x.Id == item);
-                    if (bah is not null)
-                    {
-                        tags.Add(bah);
-                    }
-
+                    tag.Topics.Remove(dbTopic);
                 }
+
+                dbTopic.Tags.Clear();
+                
+
                 dbTopic.Title = topic.Title;
                 dbTopic.Description = topic.Description;
                 dbTopic.CategoryId = topic.CategoryId;
                 dbTopic.Category = _context.Categories.FirstOrDefault(x => x.Id == dbTopic.CategoryId);
-                dbTopic.Tags = tags;
 
+
+                var selectedTags = _context.Tags.Where(t => topic.TagIds.Contains(t.Id)).ToList();
+
+                foreach (var tag in selectedTags)
+                {
+                    dbTopic.Tags.Add(tag);
+                    tag.Topics.Add(dbTopic); // bidirectional sync
+                }
                 _context.SaveChanges();
 
                 return Ok(topic);
@@ -155,11 +158,19 @@ namespace WebAPI.Controllers
                     _logger.LogError("User Error in Topic/Post", $"Modelstate Isnt Valid", 1);
                     return BadRequest(ModelState);
                 }
-               
-                var dbtopic = _mapper.Map<Topic>(topic);
+
+                var tags = _context.Tags.Where(t => topic.TagIds.Contains(t.Id)).ToList();
+
+                var dbtopic = new Topic
+                {
+                    Title = topic.Title,
+                    Description = topic.Description,
+                    CategoryId = topic.CategoryId,
+                    Tags = tags
+                };
+
                 _context.Topics.Add(dbtopic);
                 _context.SaveChanges();
-
                 return Ok(topic);
             }
             catch (Exception e)

@@ -25,9 +25,7 @@ namespace WebAPI.AutoMapper
                 .ForMember(dst => dst.Posts, opt => opt.MapFrom(src => src.Posts));
 
             CreateMap<Topic, TopicDTO>()
-                .ForMember(dst => dst.TagIds, opt => opt.MapFrom(src => src.Tags.Select(tt => tt.Id)))
-                .ReverseMap()
-                .ForMember(dst => dst.Tags, opt => opt.MapFrom(src => src.TagIds.Select(id => new Tag{ Id = id })));
+                .ForMember(dst => dst.TagIds, opt => opt.MapFrom(src => src.Tags.Select(tt => tt.Id)));
 
             CreateMap<Post, PostPreview>()
                 .ForMember(dst => dst.Username, opt => opt.MapFrom(src => src.User.Username))

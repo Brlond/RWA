@@ -36,8 +36,6 @@ function drawElements(logs) {
                 <div class="card-body">
                     <p class="card-text">Message: ${card.errorText}</p>
                     <p class="card-text">Severity: ${card.severity}</p>
-                    <button class="btn btn-outline-primary" data-id="${card.id}" data-operation="edit">Edit</button>
-                    <button class="btn btn-danger" data-id="${card.id}" data-operation="delete">Delete</button>
                 </div>
             </div>
         </div>`;
