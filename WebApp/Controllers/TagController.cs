@@ -27,14 +27,14 @@ namespace MVC.Controllers
         // GET: TagController
         public ActionResult Index()
         {
-            var tags = _context.Tags.Select(x => _mapper.Map<TagVM>(x));
+            var tags = _context.Tags.Include(x => x.Topics).ThenInclude(x => x.Posts).Select(x => _mapper.Map<TagVM>(x));
             return View(tags);
         }
 
         // GET: TagController/Details/5
         public ActionResult Details(int id)
         {
-            var dbtag = _context.Tags.Include(x=> x.Topics).FirstOrDefault(x => x.Id == id);
+            var dbtag = _context.Tags.Include(x=> x.Topics).ThenInclude(x=>x.Posts).FirstOrDefault(x => x.Id == id);
             var tagvm = _mapper.Map<TagVM>(dbtag);
             return View(tagvm);
         }
@@ -81,7 +81,7 @@ namespace MVC.Controllers
         {
             try
             {
-                var dbtag = _context.Tags.FirstOrDefault(x => x.Id == id);
+                var dbtag = _context.Tags.Include(x => x.Topics).ThenInclude(x => x.Posts).FirstOrDefault(x => x.Id == id);
                 var tagVm = _mapper.Map<TagVM>(dbtag);
                 return View(tagVm);
             }
@@ -100,7 +100,7 @@ namespace MVC.Controllers
         {
             try
             {
-                var dbtag = _context.Tags.FirstOrDefault(x => x.Id == id);
+                var dbtag = _context.Tags.Include(x => x.Topics).ThenInclude(x => x.Posts).FirstOrDefault(x => x.Id == id);
                 dbtag.Name = tag.Name;
                 _context.SaveChanges();
 
@@ -115,7 +115,7 @@ namespace MVC.Controllers
         // GET: TagController/Delete/5
         public ActionResult Delete(int id)
         {
-            var dbtag = _context.Tags.FirstOrDefault(x => x.Id == id);
+            var dbtag = _context.Tags.Include(x => x.Topics).ThenInclude(x => x.Posts).FirstOrDefault(x => x.Id == id);
             var tag = _mapper.Map<TagVM>(dbtag);
             return View(tag);
         }
@@ -127,7 +127,7 @@ namespace MVC.Controllers
         {
             try
             {
-                var dbtag = _context.Tags.FirstOrDefault(x => x.Id == id);
+                var dbtag = _context.Tags.Include(x => x.Topics).ThenInclude(x => x.Posts).FirstOrDefault(x => x.Id == id);
                 _context.Tags.Remove(dbtag);
                 _context.SaveChanges();
 

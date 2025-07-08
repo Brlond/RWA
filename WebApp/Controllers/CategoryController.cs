@@ -25,14 +25,14 @@ namespace MVC.Controllers
         // GET: CategoryController
         public ActionResult Index()
         {
-            var categories = _context.Categories.Select(x=> _mapper.Map<CategoryVM>(x)).ToList();
+            var categories = _context.Categories.Include(x => x.Topics).Select(x => _mapper.Map<CategoryVM>(x)).ToList();
             return View(categories);
         }
 
         // GET: CategoryController/Details/5
         public ActionResult Details(int id)
         {
-            var dbcategory = _context.Categories.Include(x=>x.Topics).FirstOrDefault(x => x.Id == id);
+            var dbcategory = _context.Categories.Include(x => x.Topics).FirstOrDefault(x => x.Id == id);
             var categoryvm = _mapper.Map<CategoryVM>(dbcategory);
 
             return View(categoryvm);
@@ -47,7 +47,7 @@ namespace MVC.Controllers
         // POST: CategoryController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(CategoryVM categoryVm,string action)
+        public ActionResult Create(CategoryVM categoryVm, string action)
         {
             try
             {
@@ -55,7 +55,7 @@ namespace MVC.Controllers
                 if (_context.Categories.Any(x => x.Name == categoryVm.Name))
                 {
                     ViewBag.ErrorMessage = "Category with this name already exists.";
-                    return View("Create"); 
+                    return View("Create");
                 }
                 _context.Categories.Add(category);
                 _context.SaveChanges();
@@ -78,7 +78,7 @@ namespace MVC.Controllers
         {
             try
             {
-                var dbcategory = _context.Categories.FirstOrDefault(x => x.Id == id);
+                var dbcategory = _context.Categories.Include(x => x.Topics).FirstOrDefault(x => x.Id == id);
                 var category = _mapper.Map<CategoryVM>(dbcategory);
                 return View(category);
             }
@@ -96,8 +96,8 @@ namespace MVC.Controllers
         {
             try
             {
-                var dbcategory = _context.Categories.FirstOrDefault(x => x.Id == id);
-                dbcategory.Name= categoryVM.Name;
+                var dbcategory = _context.Categories.Include(x => x.Topics).FirstOrDefault(x => x.Id == id);
+                dbcategory.Name = categoryVM.Name;
                 _context.SaveChanges();
 
                 return RedirectToAction(nameof(Index));
@@ -114,11 +114,11 @@ namespace MVC.Controllers
         {
             try
             {
-                var dbcategory = _context.Categories.FirstOrDefault(x => x.Id == id);
-                var category = _mapper.Map<CategoryVM>(dbcategory); 
+                var dbcategory = _context.Categories.Include(x => x.Topics).FirstOrDefault(x => x.Id == id);
+                var category = _mapper.Map<CategoryVM>(dbcategory);
                 return View(category);
             }
-            catch 
+            catch
             {
                 return View();
             }
@@ -131,7 +131,7 @@ namespace MVC.Controllers
         {
             try
             {
-                var dbcategory = _context.Categories.FirstOrDefault(x =>x.Id == id);
+                var dbcategory = _context.Categories.Include(x => x.Topics).FirstOrDefault(x => x.Id == id);
                 _context.Categories.Remove(dbcategory);
                 _context.SaveChanges();
                 return RedirectToAction(nameof(Index));
